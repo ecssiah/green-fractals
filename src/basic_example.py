@@ -27,7 +27,7 @@ def rotate_xform(alpha, beta, gamma):
 
 def mono_images(gen):
     '''Produce monocolor images for each frame'''
-    print(f"{gen.id}:", end='', flush=True)
+    print(f"imaging {gen.id}: ", end='', flush=True)
 
     for i, frame in enumerate(gen.frames):
         # TODO: use Image.fromarray
@@ -42,7 +42,7 @@ def mono_images(gen):
 
         img.save(f"./media/frames/{gen.id}-frame{i}.png")
 
-        print(f" {i}", end='', flush=True)
+        print(f"{i} ", end='', flush=True)
 
     print()
 
@@ -52,7 +52,7 @@ def color_images(r_gen, g_gen, b_gen):
     assert len(r_gen.frames) == len(g_gen.frames) == len(b_gen.frames)
 
     image_id = uuid4()
-    print(f"{image_id}:", end='', flush=True)
+    print(f"imaging {image_id}: ", end='', flush=True)
 
     for i in range(len(r_gen.frames)):
         # TODO: use Image.fromarray
@@ -70,7 +70,7 @@ def color_images(r_gen, g_gen, b_gen):
 
         img.save(f"./media/frames/{image_id}-frame{i}.png")
 
-        print(f" {i}", end='')
+        print(f"{i} ", end='', flush=True)
 
 
 def basic_example():
@@ -79,7 +79,11 @@ def basic_example():
     params2 = np.array([[0.0, 1.0, 1.0]]).T
     params3 = np.array([[1.0, 0.0, 1.0]]).T
 
-    xform = rotate_xform(2 * np.pi / 8, 2 * np.pi / 8, 2 * np.pi / 8)
+    xform = rotate_xform(
+        2 * np.pi / 8,
+        0,
+        0,
+    )
 
     generator1 = generate.Generator(params1, xform)
     generator1.calc_frames(4)

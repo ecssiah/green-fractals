@@ -2,7 +2,7 @@ import numpy as np
 
 
 class Frame():
-    '''A square snapshot of a Green's fractal'''
+    '''A square snapshot of a density map'''
 
     def __init__(self, dim):
         self.dim = dim
@@ -10,8 +10,13 @@ class Frame():
         self.density_norm = np.zeros((dim, dim))
 
 
-    def inc_density(self, x, y, inc):
-        '''Increment the density value at x, y'''
+    def set_density(self, x, y, value):
+        '''Set the density at x, y'''
+        self.density[x, y] = value
+
+
+    def mod_density(self, x, y, inc):
+        '''Increment the density at x, y'''
         self.density[x, y] += inc
 
 
