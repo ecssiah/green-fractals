@@ -1,9 +1,11 @@
 '''Generator produces fractal frames'''
+import time
 import random
+import logging
 from uuid import uuid4
 import numpy as np
-from PIL import Image
 
+import utils
 from frame import Frame
 
 FRAME_SIZE = 1280
@@ -15,28 +17,18 @@ RANGE = 2.0
 RATIO = FRAME_SIZE / (2 * RANGE)
 
 
-def is_square(m):
-    '''Returns True if m is a square matrix'''
-    rows = len(m)
-    for row in m:
-        if len(row) != rows:
-            return False
-    return True
-
-
 class Generator():
     '''Generator class to produce frames'''
 
-    def __init__(self, params, xform, xform_rate=1.0, color=False):
-        self.id = uuid4()
-        self.color = color
+    def __init__(self, params, xform, xform_rate=1.0):
+        self.gen_id = uuid4()
         self.params = params
         self.xform = xform
         self.xform_rate = xform_rate
 
         self.frames = []
 
-        assert is_square(self.xform)
+        assert utils.is_square(self.xform)
         assert len(self.params) == len(self.xform)
 
 
@@ -77,7 +69,8 @@ class Generator():
                         y_pos = int(path_pos.imag * RATIO) + FRAME_SIZE // 2
 
                         if 0 < x_pos < FRAME_SIZE and 0 < y_pos < FRAME_SIZE:
-                            frame.mod_density(x_pos, y_pos, 1)
+                            frame.mod_density(x_pos,  y_pos, 1)
+                            frame.mod_density(x_pos, -y_pos, 1)
 
                     break
 
@@ -92,10 +85,22 @@ class Generator():
 
     def calc_frames(self, n_frames):
         '''Apply transform to params and generate next n frames'''
-        print(f"calculating {self.id}: ", end='', flush=True)
+        print(f"calc {utils.trunc(str(self.gen_id))} ", end='', flush=True)
 
-        for i in range(n_frames):
+        for i in range(1, n_frames + 1):
             self.frames.append(self.step())
             print(f"{i} ", end='', flush=True)
 
         print()
+
+
+    def log_frames(self):
+        '''Log information about current frameset'''
+        time_str = time.strftime("%Y%m%d-%H%M%S")
+        name = f"{self.gen_id}_{time_str}"
+
+        logging.basicConfig(filename=f"{name}.", level=logging.INFO)
+
+        for frame in self.frames:
+            logging.info("%s", str(frame))
+

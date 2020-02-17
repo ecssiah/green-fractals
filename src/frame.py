@@ -10,15 +10,10 @@ class Frame():
         self.density_norm = np.zeros((dim, dim))
 
 
-    def set_density(self, x, y, value):
-        '''Set the density at x, y'''
-        self.density[x, y] = value
-
-
     def mod_density(self, x, y, inc):
         '''Increment the density at x, y'''
         self.density[x, y] += inc
 
 
     def __str__(self):
-        return f"density:\n{self.density}\nnorm:\n{self.density_norm}"
+        return f"{self.density}\n{self.density_norm}\n"
