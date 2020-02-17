@@ -4,14 +4,14 @@ import numpy as np
 
 from frame import Frame
 
-FRAME_SIZE = 1280
+FRAME_SIZE = 640
 
 NUM_PARAMETERS = 3
-ITERATIONS = int(1e2)
-POINTS = int(1e2)
+ITERATIONS = int(1e3)
+POINTS = int(1e5)
 ESCAPE_RADIUS = 3.0
-REAL_RANGE, COMP_RANGE = 4.0, 4.0
-REAL_RATIO, COMP_RATIO = FRAME_SIZE / REAL_RANGE, FRAME_SIZE / COMP_RANGE
+RANGE = 4.0
+RATIO = FRAME_SIZE / 2 * RANGE
 
 
 class Generator():
@@ -35,33 +35,47 @@ class Generator():
         for _ in range(POINTS):
             z = 0
             path = []
-            seed_point = complex(
-                random.uniform(-COMP_RANGE, COMP_RANGE),
-                random.uniform(-COMP_RANGE, COMP_RANGE)
-            )
+            found = False
+            seed_point = None
+
+            while not found:
+                # TODO: Filter seeds that are in approximation of mandelbrot set
+                #   cardiod: c = e^iθ / 2 − e^2iθ / 4
+                #   main disk: c = e^iθ / 4 - 1
+
+                seed_point = complex(
+                    random.uniform(-RANGE, RANGE), random.uniform(-RANGE, RANGE)
+                )
+
+                outside_main_disk = (1/4) < abs(seed_point - complex(-1, 0))
+
+                if outside_main_disk:
+                    found = True
 
             for _ in range(ITERATIONS):
                 w = z.conjugate()
                 z = seed_point
 
-                for i in range(len(self.params)):
-                    zi = self.params[i] * w**i
-                    z += self.params[i] * w**i
+                for i, p in enumerate(self.params):
+                    z += p * w**i
 
-                path.extend((z.imag, z.real))
-
-                if abs(z) > ESCAPE_RADIUS:
+                if abs(z) < ESCAPE_RADIUS:
+                    path.extend(z)
+                else:
                     while path:
-                        x = int(path.pop() * REAL_RATIO) + FRAME_SIZE // 2
-                        y = int(path.pop() * COMP_RATIO) + FRAME_SIZE // 2
+                        z_test = path.pop()
+                        x = int(z_test.real * RATIO) + FRAME_SIZE // 2
+                        y = int(z_test.imag * RATIO) + FRAME_SIZE // 2
 
                         if 0 < x < FRAME_SIZE and 0 < y < FRAME_SIZE:
-                            frame.density[x][y] += 1
+                            frame.inc_density(x, y, 1)
 
                     break
 
         max_count = np.amax(frame.density)
-        print("max", max_count)
+
+        assert max_count > 0
+
         frame.density_norm = frame.density / max_count
 
         self.params = np.dot(self.xform_rate * self.xform, self.params)

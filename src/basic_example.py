@@ -3,6 +3,7 @@ from generate import Generator
 
 
 def rotate_xform(alpha, beta, gamma):
+    '''Returns an array representing a rotation by three Euler angles'''
     yaw = np.array([
         [np.cos(alpha), -np.sin(alpha), 0],
         [np.sin(alpha),  np.cos(alpha), 0],
