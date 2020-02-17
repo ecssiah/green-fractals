@@ -9,8 +9,8 @@ FRAME_SIZE = 1280
 
 NUM_PARAMETERS = 3
 ITERATIONS = int(3e1)
-POINTS = int(3e6)
-ESCAPE_RADIUS = 3.0
+POINTS = int(1e6)
+ESCAPE_RADIUS = 2.0
 RANGE = 2.0
 RATIO = FRAME_SIZE / (2 * RANGE)
 
@@ -48,10 +48,10 @@ class Generator():
                     random.uniform(-RANGE, RANGE), random.uniform(-RANGE, RANGE)
                 )
 
-                outside_main_disk = (1/4) < abs(seed_point - complex(-1, 0))
+                # outside_main_disk = (1/4) < abs(seed_point - complex(-1, 0))
 
-                if outside_main_disk:
-                    found = True
+                # if outside_main_disk:
+                found = True
 
             for _ in range(ITERATIONS):
                 w = z.conjugate()
@@ -87,17 +87,18 @@ class Generator():
 
     def calc_frames(self, n_frames):
         '''Apply transform to params and generate next n frames'''
+        print(self.params)
 
         for i in range(n_frames):
-            print(f"frame {i}")
             self.frames.append(self.step())
+            print(f"frame {i}")
 
 
     def generate_images(self):
         '''Produce images for each frame in the range'''
-        for i in range(len(self.frames)):
-            print(f"image {i}")
+        print(self.params)
 
+        for i in range(len(self.frames)):
             # TODO: use Image.fromarray
             img = Image.new('RGB', (FRAME_SIZE, FRAME_SIZE), (0, 0, 0))
 
@@ -107,6 +108,8 @@ class Generator():
                     img.putpixel((y, x), (intensity, intensity, intensity))
 
             img.save(f"./media/frames/frame{i}.png")
+
+            print(f"image {i}")
 
 
 
