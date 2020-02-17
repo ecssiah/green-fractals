@@ -16,4 +16,4 @@ class Frame():
 
 
     def __str__(self):
-        return f"density: {self.density.shape} \nnorm: {self.density_norm.shape}"
+        return f"density:\n{self.density}\nnorm:\n{self.density_norm}"

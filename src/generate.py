@@ -1,17 +1,18 @@
 '''Generator produces fractal frames'''
 import random
 import numpy as np
+from PIL import Image
 
 from frame import Frame
 
-FRAME_SIZE = 640
+FRAME_SIZE = 1280
 
 NUM_PARAMETERS = 3
-ITERATIONS = int(1e3)
-POINTS = int(1e5)
+ITERATIONS = int(3e1)
+POINTS = int(3e6)
 ESCAPE_RADIUS = 3.0
-RANGE = 4.0
-RATIO = FRAME_SIZE / 2 * RANGE
+RANGE = 2.0
+RATIO = FRAME_SIZE / (2 * RANGE)
 
 
 class Generator():
@@ -56,19 +57,20 @@ class Generator():
                 w = z.conjugate()
                 z = seed_point
 
-                for i, p in enumerate(self.params):
+                for i, p in enumerate(self.params, 1):
                     z += p * w**i
 
-                if abs(z) < ESCAPE_RADIUS:
-                    path.extend(z)
-                else:
+                path.extend(z)
+
+                if abs(z) > ESCAPE_RADIUS:
                     while path:
                         z_test = path.pop()
                         x = int(z_test.real * RATIO) + FRAME_SIZE // 2
                         y = int(z_test.imag * RATIO) + FRAME_SIZE // 2
 
                         if 0 < x < FRAME_SIZE and 0 < y < FRAME_SIZE:
-                            frame.inc_density(x, y, 1)
+                            # frame.inc_density(x, y, 1)
+                            frame.density[x, y] += 1
 
                     break
 
@@ -83,8 +85,35 @@ class Generator():
         return frame
 
 
-    def next(self, n_frames=1):
+    def calc_frames(self, n_frames):
         '''Apply transform to params and generate next n frames'''
 
-        for _ in range(n_frames):
+        for i in range(n_frames):
+            print(f"frame {i}")
             self.frames.append(self.step())
+
+
+    def generate_images(self):
+        '''Produce images for each frame in the range'''
+        for i in range(len(self.frames)):
+            print(f"image {i}")
+
+            # TODO: use Image.fromarray
+            img = Image.new('RGB', (FRAME_SIZE, FRAME_SIZE), (0, 0, 0))
+
+            for x in range(FRAME_SIZE):
+                for y in range(FRAME_SIZE):
+                    intensity = int(255 * self.frames[i].density_norm[x, y])
+                    img.putpixel((y, x), (intensity, intensity, intensity))
+
+            img.save(f"./media/frames/frame{i}.png")
+
+
+
+
+
+
+
+
+
+

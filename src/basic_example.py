@@ -28,11 +28,9 @@ def basic_example():
     params = np.array([[1.0, 1.0, 1.0]]).T
     xform = rotate_xform(2 * np.pi / 128, 2 * np.pi / 128, 0)
 
-    print("params: ", params)
-    print("xform: ", xform)
-
     generator = Generator(params, xform)
-    generator.next(4)
+    generator.calc_frames(1)
+    generator.generate_images()
 
 
 if __name__ == '__main__':
