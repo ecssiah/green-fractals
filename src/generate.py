@@ -1,5 +1,6 @@
 '''Generator produces fractal frames'''
 import random
+from uuid import uuid4
 import numpy as np
 from PIL import Image
 
@@ -19,6 +20,7 @@ class Generator():
     '''Generator class to produce frames'''
 
     def __init__(self, params, xform, xform_rate=1.0):
+        self.id = uuid4()
         self.params = params
         self.xform = xform
         self.xform_rate = xform_rate
@@ -69,8 +71,8 @@ class Generator():
                         y = int(z_test.imag * RATIO) + FRAME_SIZE // 2
 
                         if 0 < x < FRAME_SIZE and 0 < y < FRAME_SIZE:
-                            # frame.inc_density(x, y, 1)
-                            frame.density[x, y] += 1
+                            frame.inc_density(x, y, 1)
+                            # frame.density[x, y] += 1
 
                     break
 
@@ -87,36 +89,10 @@ class Generator():
 
     def calc_frames(self, n_frames):
         '''Apply transform to params and generate next n frames'''
-        print(self.params)
+        print(f"{self.id}:", end='', flush=True)
 
         for i in range(n_frames):
             self.frames.append(self.step())
-            print(f"frame {i}")
+            print(f" {i}", end='', flush=True)
 
-
-    def generate_images(self):
-        '''Produce images for each frame in the range'''
-        print(self.params)
-
-        for i in range(len(self.frames)):
-            # TODO: use Image.fromarray
-            img = Image.new('RGB', (FRAME_SIZE, FRAME_SIZE), (0, 0, 0))
-
-            for x in range(FRAME_SIZE):
-                for y in range(FRAME_SIZE):
-                    intensity = int(255 * self.frames[i].density_norm[x, y])
-                    img.putpixel((y, x), (intensity, intensity, intensity))
-
-            img.save(f"./media/frames/frame{i}.png")
-
-            print(f"image {i}")
-
-
-
-
-
-
-
-
-
-
+        print()

@@ -1,4 +1,5 @@
 import numpy as np
+from uuid import uuid4
 from PIL import Image
 import generate
 
@@ -24,11 +25,11 @@ def rotate_xform(alpha, beta, gamma):
     return np.dot(yaw, np.dot(pitch, roll))
 
 
-def generate_mono_images(frames):
+def mono_images(gen):
     '''Produce monocolor images for each frame'''
-    for i, frame in enumerate(frames):
-        print(f"image {i}")
+    print(f"{gen.id}:", end='', flush=True)
 
+    for i, frame in enumerate(gen.frames):
         # TODO: use Image.fromarray
         img = Image.new(
             'RGB', (generate.FRAME_SIZE, generate.FRAME_SIZE), (0, 0, 0)
@@ -39,17 +40,21 @@ def generate_mono_images(frames):
                 intensity = int(255 * frame.density_norm[x, y])
                 img.putpixel((y, x), (intensity, intensity, intensity))
 
-        img.save(f"./media/frames/frame{i}.png")
+        img.save(f"./media/frames/{gen.id}-frame{i}.png")
+
+        print(f" {i}", end='', flush=True)
+
+    print()
 
 
-def  generate_color_images(r_frames, g_frames, b_frames):
+def color_images(r_gen, g_gen, b_gen):
     '''Produce color images using the red, green, and blue frames'''
+    assert len(r_gen.frames) == len(g_gen.frames) == len(b_gen.frames)
 
-    assert len(r_frames) == len(g_frames) == len(b_frames)
+    image_id = uuid4()
+    print(f"{image_id}:", end='', flush=True)
 
-    for i in range(len(r_frames)):
-        print(f"image {i}")
-
+    for i in range(len(r_gen.frames)):
         # TODO: use Image.fromarray
         img = Image.new(
             'RGB', (generate.FRAME_SIZE, generate.FRAME_SIZE), (0, 0, 0)
@@ -57,37 +62,39 @@ def  generate_color_images(r_frames, g_frames, b_frames):
 
         for x in range(generate.FRAME_SIZE):
             for y in range(generate.FRAME_SIZE):
-                r = int(255 * r_frames[i].density_norm[x, y])
-                g = int(255 * g_frames[i].density_norm[x, y])
-                b = int(255 * b_frames[i].density_norm[x, y])
+                r = int(255 * r_gen.frames[i].density_norm[x, y])
+                g = int(255 * g_gen.frames[i].density_norm[x, y])
+                b = int(255 * b_gen.frames[i].density_norm[x, y])
 
                 img.putpixel((y, x), (r, g, b))
 
-        img.save(f"./media/frames/frame{i}.png")
+        img.save(f"./media/frames/{image_id}-frame{i}.png")
 
-
-
-
+        print(f" {i}", end='')
 
 
 def basic_example():
     '''Produces an example Green's fractal animation'''
-    params1 = np.array([[1.0, 0.0, 0.0]]).T
-    params2 = np.array([[0.0, 1.0, 0.0]]).T
-    params3 = np.array([[0.0, 0.0, 1.0]]).T
+    params1 = np.array([[1.0, 1.0, 0.0]]).T
+    params2 = np.array([[0.0, 1.0, 1.0]]).T
+    params3 = np.array([[1.0, 0.0, 1.0]]).T
 
-    xform = rotate_xform(2 * np.pi / 4, 2 * np.pi / 4, 0)
+    xform = rotate_xform(2 * np.pi / 8, 2 * np.pi / 8, 2 * np.pi / 8)
 
     generator1 = generate.Generator(params1, xform)
-    generator1.calc_frames(2)
+    generator1.calc_frames(4)
 
     generator2 = generate.Generator(params2, xform)
-    generator2.calc_frames(2)
+    generator2.calc_frames(4)
 
     generator3 = generate.Generator(params3, xform)
-    generator3.calc_frames(2)
+    generator3.calc_frames(4)
 
-    generate_color_images(generator1.frames, generator2.frames, generator3.frames)
+    mono_images(generator1)
+    mono_images(generator2)
+    mono_images(generator3)
+
+    color_images(generator1, generator2, generator3)
 
 
 if __name__ == '__main__':
