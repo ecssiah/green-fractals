@@ -6,8 +6,9 @@ class Frame():
 
     def __init__(self, dim):
         self.dim = dim
-        self.density = np.zeros((dim, 1))
-        self.rel_density = np.zeros((dim, 1))
+        self.density = np.zeros((dim, dim), dtype=int)
+        self.density_norm = np.zeros((dim, dim))
 
-        print(self.density)
-        print(self.rel_density)
+
+    def __str__(self):
+        return f"density: {self.density.shape} \nnorm: {self.density_norm.shape}"

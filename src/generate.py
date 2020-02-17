@@ -24,13 +24,12 @@ class Generator():
 
         self.frames = []
 
-        self.num_params = len(params[0])
-
         assert len(self.xform) == len(self.xform[0])
-        assert self.num_params == len(self.xform)
+        assert len(self.params) == len(self.xform)
 
 
     def step(self):
+        '''Steps the generating function according to the rate and xform'''
         frame = Frame(FRAME_SIZE)
 
         for _ in range(POINTS):
@@ -43,6 +42,13 @@ class Generator():
 
             for _ in range(ITERATIONS):
                 w = z.conjugate()
+                z = seed_point
+
+                for i in range(len(self.params)):
+                    zi = self.params[i] * w**i
+                    z += self.params[i] * w**i
+
+                path.extend((z.imag, z.real))
 
                 if abs(z) > ESCAPE_RADIUS:
                     while path:
@@ -52,22 +58,19 @@ class Generator():
                         if 0 < x < FRAME_SIZE and 0 < y < FRAME_SIZE:
                             frame.density[x][y] += 1
 
-            self.params = np.dot(self.xform_rate * self.xform, self.params)
+                    break
+
+        max_count = np.amax(frame.density)
+        print("max", max_count)
+        frame.density_norm = frame.density / max_count
+
+        self.params = np.dot(self.xform_rate * self.xform, self.params)
 
         return frame
 
 
-    def next(self, n=1):
+    def next(self, n_frames=1):
         '''Apply transform to params and generate next n frames'''
 
-        for i in range(n):
+        for _ in range(n_frames):
             self.frames.append(self.step())
-
-        print(self.frames)
-
-
-
-
-
-
-
