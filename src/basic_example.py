@@ -12,7 +12,7 @@ def basic_example():
     params2 = np.array([[0.4, 1.0, 0.8]]).T
     params3 = np.array([[0.8, 0.4, 1.0]]).T
 
-    divs = 256
+    divs = 128
 
     xform1 = utils.rotate_xform(
         2 * math.pi / divs,
