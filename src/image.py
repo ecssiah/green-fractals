@@ -1,6 +1,5 @@
 '''Imaging module for generators'''
 import time
-import numpy as np
 from uuid import uuid4
 from PIL import Image
 
@@ -10,10 +9,10 @@ import generate
 
 def mono_images(gen):
     '''Produce monocolor images for each frame'''
-    print(f"imag {utils.trunc(str(gen.id))} ", end='', flush=True)
+    print(f"imag {str(gen.gen_id)[:6]} ", end='', flush=True)
 
-    time_str = time.strftime("%Y%m%d-%H%M%S")
-    name = f"{gen.id}_{time_str}"
+    time_str = time.strftime("%Y%m%d%H%M%S")
+    name = f"{gen.gen_id}_{time_str}"
 
     for i, frame in enumerate(gen.frames):
         # TODO: use Image.fromarray
@@ -28,7 +27,7 @@ def mono_images(gen):
 
         img.save(f"./media/frames/{name}_frame{i}.png")
 
-        print(f"{i} ", end='', flush=True)
+        print(f"{i + 1} ", end='', flush=True)
 
     print()
 
@@ -36,11 +35,11 @@ def mono_images(gen):
 def color_images(r_gen, g_gen, b_gen):
     '''Produce color images using the red, green, and blue frames'''
     image_id = uuid4()
-    print(f"imag {utils.trunc(str(image_id))} ", end='', flush=True)
+    print(f"imag {str(image_id)[:6]} ", end='', flush=True)
 
     assert len(r_gen.frames) == len(g_gen.frames) == len(b_gen.frames)
 
-    time_str = time.strftime("%Y%m%d-%H%M%S")
+    time_str = time.strftime("%Y%m%d%H%M%S")
     name = f"{image_id}_{time_str}"
 
     for i in range(len(r_gen.frames)):
@@ -59,5 +58,5 @@ def color_images(r_gen, g_gen, b_gen):
 
         img.save(f"./media/frames/{name}_frame{i}.png")
 
-        print(f"{i} ", end='', flush=True)
+        print(f"{i + 1} ", end='', flush=True)
 

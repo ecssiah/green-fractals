@@ -2,11 +2,6 @@
 import numpy as np
 
 
-def trunc(target, split_pos=8):
-    '''Truncates a str at split pos'''
-    return target[:split_pos] + (target[split_pos:] and '..')
-
-
 def is_square(mat):
     '''Returns True if m is a square matrix'''
     rows = len(mat)

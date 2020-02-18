@@ -1,35 +1,68 @@
 '''Generator produces fractal frames'''
 import time
+import math
+import cmath
 import random
-import logging
 from uuid import uuid4
 import numpy as np
 
 import utils
 from frame import Frame
 
-FRAME_SIZE = 1280
+FRAME_SIZE = 640
 NUM_PARAMETERS = 3
-ITERATIONS = int(3e1)
-POINTS = int(1e6)
-ESCAPE_RADIUS = 2.0
-RANGE = 2.0
-RATIO = FRAME_SIZE / (2 * RANGE)
+ITERATIONS = int(1.2e1)
+POINTS = int(0.6e6)
+ESCAPE_RADIUS = 10.0
+COMPLEX_RANGE = 2.0
+RATIO = FRAME_SIZE / (2 * COMPLEX_RANGE)
+
+
+class BatchedGenerator():
+    '''A list of generators handled together'''
+
+    def __init__(self, generators):
+        self.generators = generators
+        self.shape = generators[0].frames.shape
+
+        for generator in generators:
+            assert generator.frames.shape == self.shape
+
+
+    def step(self):
+        '''Step each generator function in the batch'''
+
+        for generator in self.generators:
+            pass
+
 
 
 class Generator():
     '''Generator class to produce frames'''
 
-    def __init__(self, params, xform, xform_rate=1.0):
+    def __init__(self, params, xform):
         self.gen_id = uuid4()
         self.params = params
         self.xform = xform
-        self.xform_rate = xform_rate
-
         self.frames = []
 
         assert utils.is_square(self.xform)
         assert len(self.params) == len(self.xform)
+
+
+    def process_border_regions(self):
+        '''Find regions likely to be on Mandelbrot border'''
+        divs = 128
+
+        # for x in range(-COMPLEX_RANGE, COMPLEX_RANGE, 2 * COMPLEX_RANGE / divs):
+        #     for y in range(-COMPLEX_RANGE, COMPLEX_RANGE, 2 * COMPLEX_RANGE / divs):
+        #         print(x, y)
+
+        return []
+
+
+    def init_from_log(self, log):
+        '''Generate frames from log file'''
 
 
     def step(self):
@@ -38,25 +71,23 @@ class Generator():
 
         for _ in range(POINTS):
             path = []
-            found = False
             cur_pos = 0
             seed_pos = None
+            found = False
 
             while not found:
-                # TODO: Filter seeds that are in approximation of mandelbrot set
-                #   cardiod: c = e^iθ / 2 − e^2iθ / 4
-                #   main disk: c = e^iθ / 4 - 1
-
-                seed_pos = complex(
-                    random.uniform(-RANGE, RANGE), random.uniform(-RANGE, RANGE)
+                seed_pos = cmath.rect(
+                    random.uniform(0.0, COMPLEX_RANGE),
+                    random.uniform(0.0, 2 * math.pi)
                 )
 
-                found = True
+                if True:
+                    found = True
 
             for _ in range(ITERATIONS):
                 cur_pos_con = cur_pos.conjugate()
-                cur_pos = seed_pos
 
+                cur_pos = seed_pos
                 for i, param in enumerate(self.params, 1):
                     cur_pos += param * cur_pos_con**i
 
@@ -69,7 +100,7 @@ class Generator():
                         y_pos = int(path_pos.imag * RATIO) + FRAME_SIZE // 2
 
                         if 0 < x_pos < FRAME_SIZE and 0 < y_pos < FRAME_SIZE:
-                            frame.mod_density(x_pos,  y_pos, 1)
+                            frame.mod_density(x_pos, y_pos, 1)
                             frame.mod_density(x_pos, -y_pos, 1)
 
                     break
@@ -77,30 +108,28 @@ class Generator():
         max_count = np.amax(frame.density)
         assert max_count > 0
         frame.density_norm = frame.density / max_count
+        # frame.density_norm = np.trunc(
+        #     np.sqrt(frame.density) / np.sqrt(max_count)
+        # )
 
-        self.params = np.dot(self.xform_rate * self.xform, self.params)
-
-        return frame
+        self.params = np.dot(self.xform, self.params)
+        self.frames.append(frame)
 
 
     def calc_frames(self, n_frames):
         '''Apply transform to params and generate next n frames'''
-        print(f"calc {utils.trunc(str(self.gen_id))} ", end='', flush=True)
+        print(f"calc {str(self.gen_id)[:6]} ", end='', flush=True)
 
-        for i in range(1, n_frames + 1):
-            self.frames.append(self.step())
-            print(f"{i} ", end='', flush=True)
+        for i in range(n_frames):
+            self.step()
+            print(f"{i + 1} ", end='', flush=True)
 
         print()
 
 
-    def log_frames(self):
-        '''Log information about current frameset'''
-        time_str = time.strftime("%Y%m%d-%H%M%S")
+    def save_frames(self):
+        '''Save arrays for current frameset'''
+        time_str = time.strftime("%Y%m%d%H%M%S")
         name = f"{self.gen_id}_{time_str}"
 
-        logging.basicConfig(filename=f"{name}.", level=logging.INFO)
-
-        for frame in self.frames:
-            logging.info("%s", str(frame))
-
+        np.savez(f"./media/frames/{name}", *self.frames)
