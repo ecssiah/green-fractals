@@ -11,11 +11,12 @@ from frame import Frame
 
 FRAME_SIZE = 640
 NUM_PARAMETERS = 3
-ITERATIONS = 20
-POINTS = int(0.6e6)
-ESCAPE_RADIUS = 4.0
+ITERATIONS = 40
+POINTS = int(0.4e6)
+ESCAPE_RADIUS = 2.2
 COMPLEX_RANGE = 2.0
 RATIO = FRAME_SIZE / (2 * COMPLEX_RANGE)
+REGIONS_DIM = 128
 
 
 class BatchedGenerator():
@@ -45,6 +46,9 @@ class Generator():
         self.params = params
         self.xform = xform
         self.frames = []
+        self.regions = np.zeros((REGIONS_DIM, REGIONS_DIM), dtype=int)
+
+        self.process_border_regions()
 
         assert utils.is_square(self.xform)
         assert len(self.params) == len(self.xform)
@@ -52,13 +56,40 @@ class Generator():
 
     def process_border_regions(self):
         '''Find regions likely to be on Mandelbrot border'''
-        divs = 128
+        spacing = COMPLEX_RANGE / REGIONS_DIM
+        escape_map = np.copy(self.regions)
 
-        # for x in range(-COMPLEX_RANGE, COMPLEX_RANGE, 2 * COMPLEX_RANGE / divs):
-        #     for y in range(-COMPLEX_RANGE, COMPLEX_RANGE, 2 * COMPLEX_RANGE / divs):
-        #         print(x, y)
+        for x_pos in range(REGIONS_DIM):
+            for y_pos in range(REGIONS_DIM):
+                cur_pos = complex(x_pos * spacing, y_pos * spacing)
+                print(x_pos * spacing, y_pos * spacing)
 
-        return []
+                for _ in range(ITERATIONS):
+                    cur_pos_conj = cur_pos.conjugate()
+                    next_pos = cur_pos
+
+                    for idx, param in enumerate(self.params, 1):
+                        next_pos += param * cur_pos_conj**idx
+
+                    cur_pos = next_pos
+
+                    if abs(cur_pos) > ESCAPE_RADIUS:
+                        escape_map[x_pos, y_pos] = 1
+                        break
+
+        for x_pos in range(REGIONS_DIM - 1):
+            for y_pos in range(REGIONS_DIM - 1):
+                region_sum = (
+                    escape_map[x_pos, y_pos] +
+                    escape_map[x_pos + 1, y_pos] +
+                    escape_map[x_pos, y_pos + 1] +
+                    escape_map[x_pos + 1, y_pos + 1]
+                )
+
+                if 0 < region_sum < 4:
+                    self.regions[x_pos, y_pos] = 1
+
+
 
 
     def init_from_log(self, log):
@@ -81,17 +112,21 @@ class Generator():
                     random.uniform(0.0, 2 * math.pi)
                 )
 
-                if True:
+                x_pos = math.floor(seed_pos.real * REGIONS_DIM / COMPLEX_RANGE)
+                y_pos = math.floor(seed_pos.imag * REGIONS_DIM / COMPLEX_RANGE)
+
+                if self.regions[x_pos, y_pos] == 1:
                     found = True
 
             for _ in range(ITERATIONS):
-                cur_pos_con = cur_pos.conjugate()
+                cur_pos_conj = cur_pos.conjugate()
+                next_pos = seed_pos
 
-                cur_pos = seed_pos
                 for i, param in enumerate(self.params, 1):
-                    cur_pos += param * cur_pos_con**i
+                    next_pos += param * cur_pos_conj**i
 
-                path.extend(cur_pos)
+                path.extend(next_pos)
+                cur_pos = next_pos
 
                 if abs(cur_pos) > ESCAPE_RADIUS:
                     while path:
@@ -107,13 +142,11 @@ class Generator():
 
         max_count = np.amax(frame.density)
         assert max_count > 0
+
         frame.density_norm = frame.density / max_count
-        # frame.density_norm = np.trunc(
-        #     np.sqrt(frame.density) / np.sqrt(max_count)
-        # )
+        self.frames.append(frame)
 
         self.params = np.dot(self.xform, self.params)
-        self.frames.append(frame)
 
 
     def calc_frames(self, n_frames):
@@ -132,4 +165,5 @@ class Generator():
         time_str = time.strftime("%Y%m%d%H%M%S")
         name = f"{self.gen_id}_{time_str}"
 
+        # Not saving numpy arrays, saving Frames
         np.savez(f"./media/frames/{name}", *self.frames)

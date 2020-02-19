@@ -8,29 +8,29 @@ import generate
 
 def basic_example():
     '''Produces an example Green's fractal animation'''
-    params1 = np.array([[1.0, 0.8, 0.4]]).T
-    params2 = np.array([[0.4, 1.0, 0.8]]).T
-    params3 = np.array([[0.8, 0.4, 1.0]]).T
+    params1 = np.array([[1.0, 0.0, 0.0]]).T
+    params2 = np.array([[0.0, 1.0, 0.0]]).T
+    params3 = np.array([[0.0, 0.0, 1.0]]).T
 
     divs = 128
 
     xform1 = utils.rotate_xform(
+        -2 * math.pi / divs,
         2 * math.pi / divs,
-        2 * math.pi / divs,
-        2 * math.pi / divs,
+        -2 * math.pi / divs,
     )
     xform2 = utils.rotate_xform(
+        -2 * math.pi / divs,
         2 * math.pi / divs,
-        2 * math.pi / divs,
-        2 * math.pi / divs,
+        -2 * math.pi / divs,
     )
     xform3 = utils.rotate_xform(
+        -2 * math.pi / divs,
         2 * math.pi / divs,
-        2 * math.pi / divs,
-        2 * math.pi / divs,
+        -2 * math.pi / divs,
     )
 
-    num_frames = 8
+    num_frames = 129
 
     generator1 = generate.Generator(params1, xform1)
     generator1.calc_frames(num_frames)

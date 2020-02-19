@@ -3,7 +3,6 @@ import time
 from uuid import uuid4
 from PIL import Image
 
-import utils
 import generate
 
 
@@ -43,7 +42,6 @@ def color_images(r_gen, g_gen, b_gen):
     name = f"{image_id}_{time_str}"
 
     for i in range(len(r_gen.frames)):
-        # TODO: use Image.fromarray
         img = Image.new(
             'RGB', (generate.FRAME_SIZE, generate.FRAME_SIZE), (0, 0, 0)
         )
