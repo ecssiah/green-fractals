@@ -50,6 +50,10 @@ class Generator():
 
         self.process_border_regions()
 
+        self.path = []
+        self.cur_pos = complex(0, 0)
+        self.seed_pos = complex(0, 0)
+
         assert utils.is_square(self.xform)
         assert len(self.params) == len(self.xform)
 
@@ -57,12 +61,16 @@ class Generator():
     def process_border_regions(self):
         '''Find regions likely to be on Mandelbrot border'''
         spacing = COMPLEX_RANGE / REGIONS_DIM
-        escape_map = np.copy(self.regions)
+        escape_map = np.zeros((REGIONS_DIM + 1, REGIONS_DIM + 1), dtype=int)
 
-        for x_pos in range(REGIONS_DIM):
-            for y_pos in range(REGIONS_DIM):
-                cur_pos = complex(x_pos * spacing, y_pos * spacing)
-                print(x_pos * spacing, y_pos * spacing)
+        for x_pos in range(REGIONS_DIM + 1):
+            for y_pos in range(REGIONS_DIM + 1):
+                cur_pos = complex(
+                    x_pos * spacing - COMPLEX_RANGE / 2,
+                    y_pos * spacing - COMPLEX_RANGE / 2,
+                )
+
+                print(cur_pos)
 
                 for _ in range(ITERATIONS):
                     cur_pos_conj = cur_pos.conjugate()
@@ -77,8 +85,8 @@ class Generator():
                         escape_map[x_pos, y_pos] = 1
                         break
 
-        for x_pos in range(REGIONS_DIM - 1):
-            for y_pos in range(REGIONS_DIM - 1):
+        for x_pos in range(REGIONS_DIM):
+            for y_pos in range(REGIONS_DIM):
                 region_sum = (
                     escape_map[x_pos, y_pos] +
                     escape_map[x_pos + 1, y_pos] +
@@ -90,10 +98,30 @@ class Generator():
                     self.regions[x_pos, y_pos] = 1
 
 
-
-
     def init_from_log(self, log):
         '''Generate frames from log file'''
+
+
+    def screen_pos(self, pos):
+        '''Rejects ineffective seed points'''
+        half_width = COMPLEX_RANGE / 2
+        conversion_factor = REGIONS_DIM / COMPLEX_RANGE
+
+        x_pos = math.floor(conversion_factor * pos.real + half_width)
+        y_pos = math.floor(conversion_factor * pos.imag + half_width)
+
+        return self.regions[x_pos, y_pos] == 1
+
+
+    def iterate_pos(self, pos):
+        '''Performs one iteration of the generator function'''
+        pos_conj = pos.conjugate()
+        next_pos = self.seed_pos
+
+        for idx, param in enumerate(self.params, 1):
+            next_pos += param * pos_conj ** idx
+
+        return next_pos
 
 
     def step(self):
@@ -101,36 +129,23 @@ class Generator():
         frame = Frame(FRAME_SIZE)
 
         for _ in range(POINTS):
-            path = []
-            cur_pos = 0
-            seed_pos = None
-            found = False
+            self.path = []
 
+            found = False
             while not found:
-                seed_pos = cmath.rect(
+                self.seed_pos = cmath.rect(
                     random.uniform(0.0, COMPLEX_RANGE),
                     random.uniform(0.0, 2 * math.pi)
                 )
 
-                x_pos = math.floor(seed_pos.real * REGIONS_DIM / COMPLEX_RANGE)
-                y_pos = math.floor(seed_pos.imag * REGIONS_DIM / COMPLEX_RANGE)
-
-                if self.regions[x_pos, y_pos] == 1:
-                    found = True
+                found = self.screen_pos(self.seed_pos)
 
             for _ in range(ITERATIONS):
-                cur_pos_conj = cur_pos.conjugate()
-                next_pos = seed_pos
+                self.cur_pos = self.iterate_pos(self.cur_pos)
 
-                for i, param in enumerate(self.params, 1):
-                    next_pos += param * cur_pos_conj**i
-
-                path.extend(next_pos)
-                cur_pos = next_pos
-
-                if abs(cur_pos) > ESCAPE_RADIUS:
-                    while path:
-                        path_pos = path.pop()
+                if abs(self.cur_pos) > ESCAPE_RADIUS:
+                    while self.path:
+                        path_pos = self.path.pop()
                         x_pos = int(path_pos.real * RATIO) + FRAME_SIZE // 2
                         y_pos = int(path_pos.imag * RATIO) + FRAME_SIZE // 2
 
@@ -153,9 +168,9 @@ class Generator():
         '''Apply transform to params and generate next n frames'''
         print(f"calc {str(self.gen_id)[:6]} ", end='', flush=True)
 
-        for i in range(n_frames):
+        for idx in range(n_frames):
             self.step()
-            print(f"{i + 1} ", end='', flush=True)
+            print(f"{idx + 1} ", end='', flush=True)
 
         print()
 
@@ -167,3 +182,5 @@ class Generator():
 
         # Not saving numpy arrays, saving Frames
         np.savez(f"./media/frames/{name}", *self.frames)
+
+        # np.savez(f"./media/frames/{name}_density", )
