@@ -46,8 +46,8 @@ class Generator():
         self.params = params
         self.xform = xform
         self.frames = []
-        self.regions = np.zeros((REGIONS_DIM, REGIONS_DIM), dtype=int)
 
+        self.regions = np.zeros((REGIONS_DIM, REGIONS_DIM), dtype=int)
         self.process_border_regions()
 
         self.path = []
@@ -69,8 +69,6 @@ class Generator():
                     x_pos * spacing - COMPLEX_RANGE / 2,
                     y_pos * spacing - COMPLEX_RANGE / 2,
                 )
-
-                print(cur_pos)
 
                 for _ in range(ITERATIONS):
                     cur_pos_conj = cur_pos.conjugate()
@@ -102,13 +100,21 @@ class Generator():
         '''Generate frames from log file'''
 
 
-    def screen_pos(self, pos):
+    def is_border(self, pos):
         '''Rejects ineffective seed points'''
         half_width = COMPLEX_RANGE / 2
         conversion_factor = REGIONS_DIM / COMPLEX_RANGE
 
-        x_pos = math.floor(conversion_factor * pos.real + half_width)
-        y_pos = math.floor(conversion_factor * pos.imag + half_width)
+        prev_x = conversion_factor * pos.real
+        prev_y = conversion_factor * pos.imag
+
+        print(prev_x, prev_y)
+
+        x_pos = math.floor(prev_x + half_width)
+        y_pos = math.floor(prev_y + half_width)
+
+        print("orig", pos)
+        print("chgd", x_pos, y_pos)
 
         return self.regions[x_pos, y_pos] == 1
 
@@ -131,14 +137,14 @@ class Generator():
         for _ in range(POINTS):
             self.path = []
 
-            found = False
-            while not found:
+            is_border_pos = False
+            while not is_border_pos:
                 self.seed_pos = cmath.rect(
                     random.uniform(0.0, COMPLEX_RANGE),
                     random.uniform(0.0, 2 * math.pi)
                 )
 
-                found = self.screen_pos(self.seed_pos)
+                is_border_pos = self.is_border(self.seed_pos)
 
             for _ in range(ITERATIONS):
                 self.cur_pos = self.iterate_pos(self.cur_pos)

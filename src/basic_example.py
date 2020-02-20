@@ -15,19 +15,19 @@ def basic_example():
     divs = 128
 
     xform1 = utils.rotate_xform(
-        -2 * math.pi / divs,
         2 * math.pi / divs,
         -2 * math.pi / divs,
+        2 * math.pi / divs,
     )
     xform2 = utils.rotate_xform(
-        -2 * math.pi / divs,
         2 * math.pi / divs,
         -2 * math.pi / divs,
+        2 * math.pi / divs,
     )
     xform3 = utils.rotate_xform(
-        -2 * math.pi / divs,
         2 * math.pi / divs,
         -2 * math.pi / divs,
+        2 * math.pi / divs,
     )
 
     num_frames = 129
