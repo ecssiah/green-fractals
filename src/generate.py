@@ -9,33 +9,14 @@ import numpy as np
 import utils
 from frame import Frame
 
-FRAME_SIZE = 640
+FRAME_SIZE = 1280
 NUM_PARAMETERS = 3
-ITERATIONS = 40
-POINTS = int(0.4e6)
-ESCAPE_RADIUS = 2.2
+ITERATIONS = 100
+POINTS = int(0.5e5)
+ESCAPE_RADIUS = 2.0
 COMPLEX_RANGE = 2.0
 RATIO = FRAME_SIZE / (2 * COMPLEX_RANGE)
-REGIONS_DIM = 128
-
-
-class BatchedGenerator():
-    '''A list of generators handled together'''
-
-    def __init__(self, generators):
-        self.generators = generators
-        self.shape = generators[0].frames.shape
-
-        for generator in generators:
-            assert generator.frames.shape == self.shape
-
-
-    def step(self):
-        '''Step each generator function in the batch'''
-
-        for generator in self.generators:
-            pass
-
+REGIONS_DIM = 200
 
 
 class Generator():
@@ -46,13 +27,12 @@ class Generator():
         self.params = params
         self.xform = xform
         self.frames = []
+        self.path = []
+        self.cur_pos = 0
+        self.seed_pos = 0
 
         self.regions = np.zeros((REGIONS_DIM, REGIONS_DIM), dtype=int)
         self.process_border_regions()
-
-        self.path = []
-        self.cur_pos = complex(0, 0)
-        self.seed_pos = complex(0, 0)
 
         assert utils.is_square(self.xform)
         assert len(self.params) == len(self.xform)
@@ -65,23 +45,20 @@ class Generator():
 
         for x_pos in range(REGIONS_DIM + 1):
             for y_pos in range(REGIONS_DIM + 1):
-                cur_pos = complex(
-                    x_pos * spacing - COMPLEX_RANGE / 2,
-                    y_pos * spacing - COMPLEX_RANGE / 2,
+                self.cur_pos = 0
+                self.seed_pos = complex(
+                    spacing * x_pos - COMPLEX_RANGE / 2,
+                    spacing * y_pos - COMPLEX_RANGE / 2,
                 )
 
                 for _ in range(ITERATIONS):
-                    cur_pos_conj = cur_pos.conjugate()
-                    next_pos = cur_pos
+                    self.cur_pos = self.iterate_pos(self.cur_pos)
 
-                    for idx, param in enumerate(self.params, 1):
-                        next_pos += param * cur_pos_conj**idx
-
-                    cur_pos = next_pos
-
-                    if abs(cur_pos) > ESCAPE_RADIUS:
+                    if abs(self.cur_pos) > ESCAPE_RADIUS:
                         escape_map[x_pos, y_pos] = 1
                         break
+
+        num_border_regions = 0
 
         for x_pos in range(REGIONS_DIM):
             for y_pos in range(REGIONS_DIM):
@@ -93,7 +70,10 @@ class Generator():
                 )
 
                 if 0 < region_sum < 4:
+                    num_border_regions += 1
                     self.regions[x_pos, y_pos] = 1
+
+        print(num_border_regions)
 
 
     def init_from_log(self, log):
@@ -105,16 +85,8 @@ class Generator():
         half_width = COMPLEX_RANGE / 2
         conversion_factor = REGIONS_DIM / COMPLEX_RANGE
 
-        prev_x = conversion_factor * pos.real
-        prev_y = conversion_factor * pos.imag
-
-        print(prev_x, prev_y)
-
-        x_pos = math.floor(prev_x + half_width)
-        y_pos = math.floor(prev_y + half_width)
-
-        print("orig", pos)
-        print("chgd", x_pos, y_pos)
+        x_pos = math.floor(conversion_factor * pos.real + half_width) - 1
+        y_pos = math.floor(conversion_factor * pos.imag + half_width) - 1
 
         return self.regions[x_pos, y_pos] == 1
 
@@ -136,6 +108,7 @@ class Generator():
 
         for _ in range(POINTS):
             self.path = []
+            self.cur_pos = 0
 
             is_border_pos = False
             while not is_border_pos:

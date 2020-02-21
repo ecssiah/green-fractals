@@ -13,24 +13,12 @@ def basic_example():
     params3 = np.array([[0.0, 0.0, 1.0]]).T
 
     divs = 128
+    num_frames = divs + 1
+    angle = 2 * math.pi / divs
 
-    xform1 = utils.rotate_xform(
-        2 * math.pi / divs,
-        -2 * math.pi / divs,
-        2 * math.pi / divs,
-    )
-    xform2 = utils.rotate_xform(
-        2 * math.pi / divs,
-        -2 * math.pi / divs,
-        2 * math.pi / divs,
-    )
-    xform3 = utils.rotate_xform(
-        2 * math.pi / divs,
-        -2 * math.pi / divs,
-        2 * math.pi / divs,
-    )
-
-    num_frames = 129
+    xform1 = utils.rotate_xform(-angle, angle, angle)
+    xform2 = utils.rotate_xform(angle, -angle, angle)
+    xform3 = utils.rotate_xform(angle, angle, -angle)
 
     generator1 = generate.Generator(params1, xform1)
     generator1.calc_frames(num_frames)

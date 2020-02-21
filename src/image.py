@@ -14,7 +14,6 @@ def mono_images(gen):
     name = f"{gen.gen_id}_{time_str}"
 
     for i, frame in enumerate(gen.frames):
-        # TODO: use Image.fromarray
         img = Image.new(
             'RGB', (generate.FRAME_SIZE, generate.FRAME_SIZE), (0, 0, 0)
         )
@@ -57,4 +56,3 @@ def color_images(r_gen, g_gen, b_gen):
         img.save(f"./media/frames/{name}_frame{i}.png")
 
         print(f"{i + 1} ", end='', flush=True)
-
