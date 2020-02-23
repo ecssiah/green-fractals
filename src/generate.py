@@ -16,7 +16,7 @@ POINTS = int(0.5e5)
 ESCAPE_RADIUS = 2.0
 COMPLEX_RANGE = 2.0
 RATIO = FRAME_SIZE / (2 * COMPLEX_RANGE)
-REGIONS_DIM = 200
+REGIONS_DIM = 16
 
 
 class Generator():
@@ -27,9 +27,6 @@ class Generator():
         self.params = params
         self.xform = xform
         self.frames = []
-        self.path = []
-        self.cur_pos = 0
-        self.seed_pos = 0
 
         self.regions = np.zeros((REGIONS_DIM, REGIONS_DIM), dtype=int)
         self.process_border_regions()
@@ -45,16 +42,20 @@ class Generator():
 
         for x_pos in range(REGIONS_DIM + 1):
             for y_pos in range(REGIONS_DIM + 1):
-                self.cur_pos = 0
-                self.seed_pos = complex(
+                seed_pos = complex(
                     spacing * x_pos - COMPLEX_RANGE / 2,
                     spacing * y_pos - COMPLEX_RANGE / 2,
                 )
+                cur_pos = seed_pos
 
                 for _ in range(ITERATIONS):
-                    self.cur_pos = self.iterate_pos(self.cur_pos)
+                    pos_conj = cur_pos.conjugate()
+                    cur_pos = seed_pos
 
-                    if abs(self.cur_pos) > ESCAPE_RADIUS:
+                    for idx, param in enumerate(self.params, 1):
+                        cur_pos += param * pos_conj ** idx
+
+                    if abs(cur_pos) > ESCAPE_RADIUS:
                         escape_map[x_pos, y_pos] = 1
                         break
 
@@ -74,6 +75,7 @@ class Generator():
                     self.regions[x_pos, y_pos] = 1
 
         print(num_border_regions)
+        print(self.regions)
 
 
     def init_from_log(self, log):
@@ -85,21 +87,60 @@ class Generator():
         half_width = COMPLEX_RANGE / 2
         conversion_factor = REGIONS_DIM / COMPLEX_RANGE
 
-        x_pos = math.floor(conversion_factor * pos.real + half_width) - 1
-        y_pos = math.floor(conversion_factor * pos.imag + half_width) - 1
+        x_pos = math.trunc(conversion_factor * pos.real + half_width)
+        y_pos = math.trunc(conversion_factor * pos.imag + half_width)
+
+        print(x_pos, y_pos)
 
         return self.regions[x_pos, y_pos] == 1
 
 
-    def iterate_pos(self, pos):
-        '''Performs one iteration of the generator function'''
-        pos_conj = pos.conjugate()
-        next_pos = self.seed_pos
+    def choose_seed(self):
+        '''Choose effective seed points'''
+        is_border_pos = False
+        while not is_border_pos:
+            seed_pos = cmath.rect(
+                random.uniform(0.0, COMPLEX_RANGE),
+                random.uniform(0.0, 2 * math.pi)
+            )
 
-        for idx, param in enumerate(self.params, 1):
-            next_pos += param * pos_conj ** idx
+            is_border_pos = self.is_border(seed_pos)
 
-        return next_pos
+        return seed_pos
+
+
+    def calc_escapes(self, seed_pos, frame):
+        '''Iterates a seed_pos looking for escape'''
+        path = []
+        cur_pos = seed_pos
+
+        for _ in range(ITERATIONS):
+            pos_conj = cur_pos.conjugate()
+            cur_pos = seed_pos
+
+            for idx, param in enumerate(self.params, 1):
+                cur_pos += param * pos_conj ** idx
+
+            if abs(cur_pos) > ESCAPE_RADIUS:
+                while path:
+                    path_pos = path.pop()
+                    x_pos = int(path_pos.real * RATIO) + FRAME_SIZE // 2
+                    y_pos = int(path_pos.imag * RATIO) + FRAME_SIZE // 2
+
+                    if 0 < x_pos < FRAME_SIZE and 0 < y_pos < FRAME_SIZE:
+                        frame.mod_density(x_pos, y_pos, 1)
+                        frame.mod_density(x_pos, -y_pos, 1)
+
+                break
+
+
+    def norm_density(self, frame):
+        '''Normalizes the density map'''
+        max_count = np.amax(frame.density)
+        assert max_count > 0
+
+        frame.density_norm = frame.density / max_count
+        self.frames.append(frame)
 
 
     def step(self):
@@ -107,39 +148,10 @@ class Generator():
         frame = Frame(FRAME_SIZE)
 
         for _ in range(POINTS):
-            self.path = []
-            self.cur_pos = 0
+            seed_pos = self.choose_seed()
+            self.calc_escapes(seed_pos, frame)
 
-            is_border_pos = False
-            while not is_border_pos:
-                self.seed_pos = cmath.rect(
-                    random.uniform(0.0, COMPLEX_RANGE),
-                    random.uniform(0.0, 2 * math.pi)
-                )
-
-                is_border_pos = self.is_border(self.seed_pos)
-
-            for _ in range(ITERATIONS):
-                self.cur_pos = self.iterate_pos(self.cur_pos)
-
-                if abs(self.cur_pos) > ESCAPE_RADIUS:
-                    while self.path:
-                        path_pos = self.path.pop()
-                        x_pos = int(path_pos.real * RATIO) + FRAME_SIZE // 2
-                        y_pos = int(path_pos.imag * RATIO) + FRAME_SIZE // 2
-
-                        if 0 < x_pos < FRAME_SIZE and 0 < y_pos < FRAME_SIZE:
-                            frame.mod_density(x_pos, y_pos, 1)
-                            frame.mod_density(x_pos, -y_pos, 1)
-
-                    break
-
-        max_count = np.amax(frame.density)
-        assert max_count > 0
-
-        frame.density_norm = frame.density / max_count
-        self.frames.append(frame)
-
+        self.norm_density(frame)
         self.params = np.dot(self.xform, self.params)
 
 
