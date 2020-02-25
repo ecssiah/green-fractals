@@ -8,7 +8,7 @@ import generate
 
 def basic_example():
     '''Produces an example Green's fractal animation'''
-    params1 = np.array([[1.0, 1.0, 0.0]]).T
+    params1 = np.array([[0.6, 1.0, 0.6]]).T
     params2 = np.array([[0.0, 1.0, 1.0]]).T
     params3 = np.array([[1.0, 0.0, 1.0]]).T
 

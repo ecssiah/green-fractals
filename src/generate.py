@@ -16,7 +16,7 @@ POINTS = int(0.5e5)
 ESCAPE_RADIUS = 2.0
 COMPLEX_RANGE = 2.0
 RATIO = FRAME_SIZE / (2 * COMPLEX_RANGE)
-REGIONS_DIM = 16
+REGIONS_DIM = 20
 
 
 class Generator():
@@ -74,9 +74,6 @@ class Generator():
                     num_border_regions += 1
                     self.regions[x_pos, y_pos] = 1
 
-        print(num_border_regions)
-        print(self.regions)
-
 
     def init_from_log(self, log):
         '''Generate frames from log file'''
@@ -87,8 +84,8 @@ class Generator():
         half_width = COMPLEX_RANGE / 2
         conversion_factor = REGIONS_DIM / COMPLEX_RANGE
 
-        x_pos = math.trunc(conversion_factor * pos.real + half_width)
-        y_pos = math.trunc(conversion_factor * pos.imag + half_width)
+        x_pos = math.floor(conversion_factor * (pos.real + half_width))
+        y_pos = math.floor(conversion_factor * (pos.imag + half_width))
 
         print(x_pos, y_pos)
 
