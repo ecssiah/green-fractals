@@ -11,8 +11,8 @@ import image
 from frame import Frame
 
 FRAME_SIZE = 1024
-ITERATIONS = 1_000
-POINTS = 2_000
+ITERATIONS = 2_000
+POINTS = 10_000
 ESCAPE_RADIUS = 200
 COMPLEX_RANGE = 2.0
 RATIO = FRAME_SIZE / (2 * COMPLEX_RANGE)
@@ -30,7 +30,7 @@ class Generator():
         self.frames = []
 
         self.regions = np.zeros((REGIONS_DIM, REGIONS_DIM), dtype=int)
-        self.process_border_regions()
+        # self.process_border_regions()
 
         assert utils.is_square(self.xform)
         assert len(self.params) == len(self.xform)
@@ -97,14 +97,14 @@ class Generator():
 
     def choose_seed(self):
         '''Choose effective seed points'''
-        is_border_pos = False
-        while not is_border_pos:
-            seed_pos = cmath.rect(
-                random.uniform(0.0, COMPLEX_RANGE),
-                random.uniform(0.0, 2 * math.pi)
-            )
+        # is_border_pos = False
+        # while not is_border_pos:
+        seed_pos = cmath.rect(
+            random.uniform(0.0, COMPLEX_RANGE),
+            random.uniform(0.0, 2 * math.pi)
+        )
 
-            is_border_pos = self.is_border(seed_pos)
+            # is_border_pos = self.is_border(seed_pos)
 
         return seed_pos
 
