@@ -12,7 +12,7 @@ from frame import Frame
 
 FRAME_SIZE = 1024
 ITERATIONS = 1_000
-POINTS = 1_000
+POINTS = 2_000
 ESCAPE_RADIUS = 200
 COMPLEX_RANGE = 2.0
 RATIO = FRAME_SIZE / (2 * COMPLEX_RANGE)
@@ -152,8 +152,8 @@ class Generator():
         img = image.frame2image(frame)
         time_str = time.strftime("%Y%m%d%H%M%S")
 
-        name = f"{self.gen_id}_{time_str}_frame{len(self.frames):03}.png"
-        img.save(f"./media/imgs/{name}")
+        name = f"{self.gen_id}_{time_str}_frame_{len(self.frames):04}"
+        img.save(f"./media/imgs/{name}.png")
 
 
     def step(self):
