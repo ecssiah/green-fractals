@@ -6,7 +6,7 @@ from PIL import Image
 import generate
 
 
-def frame2monoimage(frame):
+def frame2image(frame):
     '''Produce a monocolor image from a frame''' 
 
     img = Image.new(
@@ -17,11 +17,11 @@ def frame2monoimage(frame):
         for y in range(generate.FRAME_SIZE):
             intensity = int(255 * frame.density_norm[x, y])
             img.putpixel((y, x), (intensity, intensity, intensity))
-    
+
     return img
 
 
-def frame2image(red_frame, green_frame, blue_frame):
+def frames2image(red_frame, green_frame, blue_frame):
     '''Produce a color image from three channel frames'''
 
     assert len(red_frame) == len(green_frame) == len(blue_frame)

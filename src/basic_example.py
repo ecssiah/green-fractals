@@ -1,4 +1,6 @@
 import math
+import time
+from uuid import uuid4
 import numpy as np
 
 import image
@@ -29,9 +31,18 @@ def basic_example():
     generator3 = generate.Generator(params3, xform3)
     generator3.calc_frames(num_frames)
 
-    # image.color_images(generator1, generator2, generator3)
+    for frame_num in range(num_frames):
+        out_img = image.frames2image(
+            generator1.frames[frame_num], 
+            generator2.frames[frame_num], 
+            generator3.frames[frame_num]
+        )
 
+        image_id = uuid4()
+        time_str = time.strftime("%Y%m%d%H%M%S")
+        name = f"{image_id}_{time_str}_frame{frame_num:03}.png"
 
+        out_img.save(f"./media/imgs/{name}.png")
 
 
 if __name__ == '__main__':

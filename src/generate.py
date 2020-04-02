@@ -12,11 +12,12 @@ from frame import Frame
 
 FRAME_SIZE = 1024
 ITERATIONS = 1_000
-POINTS = 100_000
+POINTS = 1_000
 ESCAPE_RADIUS = 200
 COMPLEX_RANGE = 2.0
 RATIO = FRAME_SIZE / (2 * COMPLEX_RANGE)
 REGIONS_DIM = 20
+PRODUCE_IMAGES = True
 
 
 class Generator():
@@ -29,7 +30,7 @@ class Generator():
         self.frames = []
 
         self.regions = np.zeros((REGIONS_DIM, REGIONS_DIM), dtype=int)
-        # self.process_border_regions()
+        self.process_border_regions()
 
         assert utils.is_square(self.xform)
         assert len(self.params) == len(self.xform)
@@ -56,7 +57,8 @@ class Generator():
                         cur_pos += param * pos_conj ** idx
 
                     if abs(cur_pos) > ESCAPE_RADIUS:
-                        escape_map[x_pos, y_pos] = 1
+                        if 0 <= x_pos < REGIONS_DIM and 0 <= y_pos < REGIONS_DIM:
+                            escape_map[x_pos, y_pos] = 1
                         break
 
         num_border_regions = 0
@@ -87,21 +89,22 @@ class Generator():
         x_pos = math.floor(conversion_factor * (pos.real + half_width))
         y_pos = math.floor(conversion_factor * (pos.imag + half_width))
 
-        print(x_pos, y_pos)
-
-        return self.regions[x_pos, y_pos] == 1
+        if 0 <= x_pos < REGIONS_DIM and 0 <= y_pos < REGIONS_DIM:
+            return self.regions[x_pos, y_pos] == 1
+        else:
+            return False
 
 
     def choose_seed(self):
         '''Choose effective seed points'''
-        # is_border_pos = False
-        # while not is_border_pos:
-        seed_pos = cmath.rect(
-            random.uniform(0.0, COMPLEX_RANGE),
-            random.uniform(0.0, 2 * math.pi)
-        )
+        is_border_pos = False
+        while not is_border_pos:
+            seed_pos = cmath.rect(
+                random.uniform(0.0, COMPLEX_RANGE),
+                random.uniform(0.0, 2 * math.pi)
+            )
 
-        #     is_border_pos = self.is_border(seed_pos)
+            is_border_pos = self.is_border(seed_pos)
 
         return seed_pos
 
@@ -146,7 +149,7 @@ class Generator():
 
     def process_image(self, frame):
         '''Save the given frame to an image on the disk'''
-        img = image.frame2monoimage(frame)
+        img = image.frame2image(frame)
         time_str = time.strftime("%Y%m%d%H%M%S")
 
         name = f"{self.gen_id}_{time_str}_frame{len(self.frames):03}.png"
@@ -161,7 +164,9 @@ class Generator():
             self.calc_escapes(self.choose_seed(), frame)
 
         self.norm_density(frame)
-        self.process_image(frame)
+        
+        if PRODUCE_IMAGES:
+            self.process_image(frame)
 
         self.params = np.dot(self.xform, self.params)
 
