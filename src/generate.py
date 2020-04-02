@@ -7,13 +7,13 @@ from uuid import uuid4
 import numpy as np
 
 import utils
+import image
 from frame import Frame
 
-FRAME_SIZE = 1280
-NUM_PARAMETERS = 3
-ITERATIONS = 100
-POINTS = int(0.5e5)
-ESCAPE_RADIUS = 2.0
+FRAME_SIZE = 1024
+ITERATIONS = 1_000
+POINTS = 100_000
+ESCAPE_RADIUS = 200
 COMPLEX_RANGE = 2.0
 RATIO = FRAME_SIZE / (2 * COMPLEX_RANGE)
 REGIONS_DIM = 20
@@ -29,7 +29,7 @@ class Generator():
         self.frames = []
 
         self.regions = np.zeros((REGIONS_DIM, REGIONS_DIM), dtype=int)
-        self.process_border_regions()
+        # self.process_border_regions()
 
         assert utils.is_square(self.xform)
         assert len(self.params) == len(self.xform)
@@ -94,14 +94,14 @@ class Generator():
 
     def choose_seed(self):
         '''Choose effective seed points'''
-        is_border_pos = False
-        while not is_border_pos:
-            seed_pos = cmath.rect(
-                random.uniform(0.0, COMPLEX_RANGE),
-                random.uniform(0.0, 2 * math.pi)
-            )
+        # is_border_pos = False
+        # while not is_border_pos:
+        seed_pos = cmath.rect(
+            random.uniform(0.0, COMPLEX_RANGE),
+            random.uniform(0.0, 2 * math.pi)
+        )
 
-            is_border_pos = self.is_border(seed_pos)
+        #     is_border_pos = self.is_border(seed_pos)
 
         return seed_pos
 
@@ -112,11 +112,15 @@ class Generator():
         cur_pos = seed_pos
 
         for _ in range(ITERATIONS):
+            path.append(cur_pos)
             pos_conj = cur_pos.conjugate()
-            cur_pos = seed_pos
 
-            for idx, param in enumerate(self.params, 1):
-                cur_pos += param * pos_conj ** idx
+            cur_pos = (
+                self.params[0, 0] * pos_conj**4 +
+                self.params[1, 0] * pos_conj**3 +
+                self.params[2, 0] * pos_conj**2 +
+                seed_pos
+            )
 
             if abs(cur_pos) > ESCAPE_RADIUS:
                 while path:
@@ -140,15 +144,25 @@ class Generator():
         self.frames.append(frame)
 
 
+    def process_image(self, frame):
+        '''Save the given frame to an image on the disk'''
+        img = image.frame2monoimage(frame)
+        time_str = time.strftime("%Y%m%d%H%M%S")
+
+        name = f"{self.gen_id}_{time_str}_frame{len(self.frames):03}.png"
+        img.save(f"./media/imgs/{name}")
+
+
     def step(self):
         '''Steps the generating function according to the rate and xform'''
         frame = Frame(FRAME_SIZE)
 
         for _ in range(POINTS):
-            seed_pos = self.choose_seed()
-            self.calc_escapes(seed_pos, frame)
+            self.calc_escapes(self.choose_seed(), frame)
 
         self.norm_density(frame)
+        self.process_image(frame)
+
         self.params = np.dot(self.xform, self.params)
 
 

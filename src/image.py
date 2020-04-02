@@ -6,53 +6,64 @@ from PIL import Image
 import generate
 
 
-def mono_images(gen):
-    '''Produce monocolor images for each frame'''
-    print(f"imag {str(gen.gen_id)[:6]} ", end='', flush=True)
+def frame2monoimage(frame):
+    '''Produce a monocolor image from a frame''' 
 
-    time_str = time.strftime("%Y%m%d%H%M%S")
-    name = f"{gen.gen_id}_{time_str}"
+    img = Image.new(
+        'RGB', (generate.FRAME_SIZE, generate.FRAME_SIZE), (0, 0, 0)
+    )
 
-    for i, frame in enumerate(gen.frames):
-        img = Image.new(
-            'RGB', (generate.FRAME_SIZE, generate.FRAME_SIZE), (0, 0, 0)
-        )
-
-        for x in range(generate.FRAME_SIZE):
-            for y in range(generate.FRAME_SIZE):
-                intensity = int(255 * frame.density_norm[x, y])
-                img.putpixel((y, x), (intensity, intensity, intensity))
-
-        img.save(f"./media/frames/{name}_frame{i}.png")
-
-        print(f"{i + 1} ", end='', flush=True)
-
-    print()
+    for x in range(generate.FRAME_SIZE):
+        for y in range(generate.FRAME_SIZE):
+            intensity = int(255 * frame.density_norm[x, y])
+            img.putpixel((y, x), (intensity, intensity, intensity))
+    
+    return img
 
 
-def color_images(r_gen, g_gen, b_gen):
-    '''Produce color images using the red, green, and blue frames'''
-    image_id = uuid4()
-    print(f"imag {str(image_id)[:6]} ", end='', flush=True)
+def frame2image(red_frame, green_frame, blue_frame):
+    '''Produce a color image from three channel frames'''
 
-    assert len(r_gen.frames) == len(g_gen.frames) == len(b_gen.frames)
+    assert len(red_frame) == len(green_frame) == len(blue_frame)
 
-    time_str = time.strftime("%Y%m%d%H%M%S")
-    name = f"{image_id}_{time_str}"
+    img = Image.new(
+        'RGB', (generate.FRAME_SIZE, generate.FRAME_SIZE), (0, 0, 0)
+    )
 
-    for i in range(len(r_gen.frames)):
-        img = Image.new(
-            'RGB', (generate.FRAME_SIZE, generate.FRAME_SIZE), (0, 0, 0)
-        )
+    for x in range(generate.FRAME_SIZE):
+        for y in range(generate.FRAME_SIZE):
+            red_intensity = int(255 * red_frame.density_norm[x, y])
+            green_intensity = int(255 * green_frame.density_norm[x, y])
+            blue_intensity = int(255 * blue_frame.density_norm[x, y])
 
-        for x in range(generate.FRAME_SIZE):
-            for y in range(generate.FRAME_SIZE):
-                r = int(255 * r_gen.frames[i].density_norm[x, y])
-                g = int(255 * g_gen.frames[i].density_norm[x, y])
-                b = int(255 * b_gen.frames[i].density_norm[x, y])
+            img.putpixel((y, x), (red_intensity, green_intensity, blue_intensity))
+    
+    return img
 
-                img.putpixel((y, x), (r, g, b))
 
-        img.save(f"./media/frames/{name}_frame{i}.png")
+# def color_images(r_gen, g_gen, b_gen):
+#     '''Produce color images using the red, green, and blue frames'''
+#     image_id = uuid4()
+#     print(f"imag {str(image_id)[:6]} ", end='', flush=True)
 
-        print(f"{i + 1} ", end='', flush=True)
+#     assert len(r_gen.frames) == len(g_gen.frames) == len(b_gen.frames)
+
+#     time_str = time.strftime("%Y%m%d%H%M%S")
+#     name = f"{image_id}_{time_str}"
+
+#     for i in range(len(r_gen.frames)):
+#         img = Image.new(
+#             'RGB', (generate.FRAME_SIZE, generate.FRAME_SIZE), (0, 0, 0)
+#         )
+
+#         for x in range(generate.FRAME_SIZE):
+#             for y in range(generate.FRAME_SIZE):
+#                 r = int(255 * r_gen.frames[i].density_norm[x, y])
+#                 g = int(255 * g_gen.frames[i].density_norm[x, y])
+#                 b = int(255 * b_gen.frames[i].density_norm[x, y])
+
+#                 img.putpixel((y, x), (r, g, b))
+
+#         img.save(f"./media/frames/{name}_frame{i}.png")
+
+#         print(f"{i + 1} ", end='', flush=True)
