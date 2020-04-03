@@ -31,25 +31,7 @@ def basic_example():
     generator3 = generate.Generator(params3, xform3)
     generator3.calc_frames(num_frames)
 
-    image_id = uuid4()
-    time_str = time.strftime("%Y%m%d%H%M%S")
-
-    print(f"calc color {str(image_id)[:6]} ", end='', flush=True)
-
-    for frame_num in range(num_frames):
-        print(f"{frame_num + 1} ", end='', flush=True)
-
-        out_img = image.frames2image(
-            generator1.frames[frame_num], 
-            generator2.frames[frame_num], 
-            generator3.frames[frame_num]
-        )
-
-        name = f"{image_id}_{time_str}_frame_{frame_num:04}"
-
-        out_img.save(f"./media/imgs/{name}.png")
-
-    print()
+    image.generate_color_image(generator1, generator2, generator3)
 
 
 if __name__ == '__main__':
