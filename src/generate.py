@@ -99,22 +99,8 @@ class Generator():
 
         if 0 <= x_pos < REGIONS_DIM and 0 <= y_pos < REGIONS_DIM:
             return self.regions[x_pos, y_pos] == 1
-        else:
-            return False
 
-
-    def choose_seed(self):
-        '''Choose effective seed points'''
-        # is_border_pos = False
-        # while not is_border_pos:
-        seed_pos = cmath.rect(
-            random.uniform(0.0, COMPLEX_RANGE),
-            random.uniform(0.0, 2 * math.pi)
-        )
-
-            # is_border_pos = self.is_border(seed_pos)
-
-        return seed_pos
+        return False
 
 
     def calc_escapes(self, seed_pos, frame):
@@ -155,7 +141,6 @@ class Generator():
     def process_image(self, frame):
         '''Save the given frame to an image on the disk'''
         img = image.frame2image(frame)
-        time_str = time.strftime("%Y%m%d%H%M%S")
 
         name = f"{self.gen_id}_frame_{len(self.frames):04}"
         img.save(f"./media/imgs/{name}.png")
@@ -181,8 +166,8 @@ class Generator():
         print(f"calc {str(self.gen_id)[:6]} ", end='', flush=True)
 
         for idx in range(num_frames):
-            self.step()
             print(f"{idx + 1} ", end='', flush=True)
+            self.step()
 
         print()
 

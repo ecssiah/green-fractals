@@ -6,7 +6,7 @@ import utils
 import generate
 
 
-def basic_img_example():
+def example_img():
     '''Produces a image of a Green fractal'''
     generator = generate.Generator(
         np.array([[1.0, -1.0, 1.0]]).T,
@@ -16,7 +16,7 @@ def basic_img_example():
     generator.calc_frames(64)
 
 
-def basic_color_example():
+def example_color_img():
     '''Produces a three channel color image of a Green fractal'''
     params1 = np.array([[1.0, 1.0, 1.0]]).T
     params2 = np.array([[1.0, 1.0, 1.0]]).T
@@ -43,4 +43,4 @@ def basic_color_example():
 
 
 if __name__ == '__main__':
-    basic_img_example()
+    example_img()
