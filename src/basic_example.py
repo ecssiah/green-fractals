@@ -1,3 +1,4 @@
+'''Script demonstrating some basic uses of the Green fractal classes'''
 import math
 import numpy as np
 

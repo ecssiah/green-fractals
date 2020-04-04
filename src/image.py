@@ -53,9 +53,8 @@ def generate_color_image(red_generator, green_generator, blue_generator):
     num_frames = len(red_generator.frames)
 
     image_id = uuid4()
-    time_str = time.strftime("%Y%m%d%H%M%S")
 
-    print(f"calc color {str(image_id)[:6]} ", end='', flush=True)
+    print(f"calc {str(image_id)[:6]} ", end='', flush=True)
 
     for frame_num in range(num_frames):
         print(f"{frame_num + 1} ", end='', flush=True)
