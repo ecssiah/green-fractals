@@ -11,9 +11,9 @@ import image
 from frame import Frame
 
 FRAME_SIZE = 1024
-ITERATIONS = 2_000
-POINTS = 10_000
-ESCAPE_RADIUS = 200
+ITERATIONS = 600
+POINTS = 100_000
+ESCAPE_RADIUS = 2
 COMPLEX_RANGE = 2.0
 RATIO = FRAME_SIZE / (2 * COMPLEX_RANGE)
 REGIONS_DIM = 20
@@ -28,6 +28,14 @@ class Generator():
         self.params = params
         self.xform = xform
         self.frames = []
+
+        self.seeds = [
+            cmath.rect(
+                random.uniform(0, COMPLEX_RANGE),
+                random.uniform(0, 2 * math.pi)
+            )
+            for _ in range(POINTS)
+        ]
 
         self.regions = np.zeros((REGIONS_DIM, REGIONS_DIM), dtype=int)
         # self.process_border_regions()
@@ -117,13 +125,10 @@ class Generator():
         for _ in range(ITERATIONS):
             path.append(cur_pos)
             pos_conj = cur_pos.conjugate()
+            cur_pos = seed_pos
 
-            cur_pos = (
-                self.params[0, 0] * pos_conj**4 +
-                self.params[1, 0] * pos_conj**3 +
-                self.params[2, 0] * pos_conj**2 +
-                seed_pos
-            )
+            for i in range(len(self.params)):
+                cur_pos += self.params[i,0] * pos_conj**(i+2)
 
             if abs(cur_pos) > ESCAPE_RADIUS:
                 while path:
@@ -152,7 +157,7 @@ class Generator():
         img = image.frame2image(frame)
         time_str = time.strftime("%Y%m%d%H%M%S")
 
-        name = f"{self.gen_id}_{time_str}_frame_{len(self.frames):04}"
+        name = f"{self.gen_id}_frame_{len(self.frames):04}"
         img.save(f"./media/imgs/{name}.png")
 
 
@@ -160,22 +165,22 @@ class Generator():
         '''Steps the generating function according to the rate and xform'''
         frame = Frame(FRAME_SIZE)
 
-        for _ in range(POINTS):
-            self.calc_escapes(self.choose_seed(), frame)
+        for i in range(POINTS):
+            self.calc_escapes(self.seeds[i], frame)
 
         self.norm_density(frame)
-        
+        # self.params = np.dot(self.xform, self.params)
+        self.params = self.xform @ self.params
+
         if PRODUCE_IMAGES:
             self.process_image(frame)
 
-        self.params = np.dot(self.xform, self.params)
 
-
-    def calc_frames(self, n_frames):
+    def calc_frames(self, num_frames):
         '''Apply transform to params and generate next n frames'''
         print(f"calc {str(self.gen_id)[:6]} ", end='', flush=True)
 
-        for idx in range(n_frames):
+        for idx in range(num_frames):
             self.step()
             print(f"{idx + 1} ", end='', flush=True)
 

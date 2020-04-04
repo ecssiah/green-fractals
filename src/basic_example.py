@@ -1,6 +1,4 @@
 import math
-import time
-from uuid import uuid4
 import numpy as np
 
 import image
@@ -8,14 +6,24 @@ import utils
 import generate
 
 
-def basic_example():
-    '''Produces an example Green's fractal animation'''
+def basic_img_example():
+    '''Produces a image of a Green fractal'''
+    generator = generate.Generator(
+        np.array([[1.0, -1.0, 1.0]]).T,
+        utils.rotate_xform(0.01, 0.01, 0)
+    )
+
+    generator.calc_frames(64)
+
+
+def basic_color_example():
+    '''Produces a three channel color image of a Green fractal'''
     params1 = np.array([[1.0, 1.0, 1.0]]).T
     params2 = np.array([[1.0, 1.0, 1.0]]).T
     params3 = np.array([[1.0, 1.0, 1.0]]).T
 
     num_frames = 64
-    theta_range = 2 * math.pi / 128
+    theta_range = 2 * math.pi / 512
     d_theta = theta_range / num_frames
 
     xform1 = utils.rotate_xform(d_theta, 0, 0)
@@ -35,4 +43,4 @@ def basic_example():
 
 
 if __name__ == '__main__':
-    basic_example()
+    basic_img_example()

@@ -13,7 +13,7 @@ class Frame():
 
     def __str__(self):
         return f"{self.density}\n{self.density_norm}\n"
-    
+
 
     def __len__(self):
         return self.dim

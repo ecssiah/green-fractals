@@ -29,4 +29,5 @@ def rotate_xform(alpha, beta, gamma):
         [0, np.sin(gamma),  np.cos(gamma)]
     ])
 
-    return np.dot(yaw, np.dot(pitch, roll))
+    return yaw @ pitch @ roll
+    # return np.dot(yaw, np.dot(pitch, roll))
