@@ -22,6 +22,7 @@ class Frame():
 
 
     def calc_norm(self):
+        '''Normalizes the frame data'''
         max_count = np.amax(self.density)
         assert max_count > 0
 

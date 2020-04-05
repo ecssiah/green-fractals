@@ -1,3 +1,4 @@
+'''Green fractals constants'''
 RANDOM_SEED = 1
 FRAME_SIZE = 1024
 ITERATIONS = 1_000

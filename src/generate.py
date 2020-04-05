@@ -142,7 +142,7 @@ class Generator():
         '''Calculate params using xform for all frames'''
         params = [self.init_params]
 
-        for i in range(1, self.num_frames + 1):
+        for i in range(1, self.num_frames):
             params.append(self.xform @ params[i - 1])
 
         return params
@@ -160,32 +160,6 @@ class Generator():
                 seeds[frame_num].append(border.produce_seed())
 
         return seeds
-
-
-    # def calc_paths(self, frame_num, seed_pos, frame):
-    #     '''Iterates a seed_pos looking for escape paths'''
-    #     path = []
-    #     cur_pos = seed_pos
-
-    #     for _ in range(ITERATIONS):
-    #         path.append(cur_pos)
-    #         pos_conj = cur_pos.conjugate()
-    #         cur_pos = seed_pos
-
-    #         for i in range(len(self.params[frame_num])):
-    #             cur_pos += self.params[frame_num][i, 0] * pos_conj**(i+2)
-
-    #         if abs(cur_pos) > ESCAPE_RADIUS:
-    #             while path:
-    #                 path_pos = path.pop()
-    #                 x_pos = int(path_pos.real * RATIO) + FRAME_SIZE // 2
-    #                 y_pos = int(path_pos.imag * RATIO) + FRAME_SIZE // 2
-
-    #                 if 0 < x_pos < FRAME_SIZE and 0 < y_pos < FRAME_SIZE:
-    #                     frame.mod_density(x_pos, y_pos, 1)
-    #                     frame.mod_density(x_pos, -y_pos, 1)
-
-    #             break
 
 
     def produce_frame(self, frame_num):
