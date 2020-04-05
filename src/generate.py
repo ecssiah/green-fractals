@@ -10,6 +10,7 @@ import utils
 import image
 from frame import Frame
 
+RANDOM_SEED = 1
 FRAME_SIZE = 1024
 ITERATIONS = 1_000
 POINTS = 1_000
@@ -123,6 +124,8 @@ class Generator():
     '''Generator class to produce frames'''
 
     def __init__(self, init_params, xform, num_frames=12):
+        random.seed(RANDOM_SEED)
+
         self.gen_id = uuid4()
         self.xform = xform
         self.num_frames = num_frames
