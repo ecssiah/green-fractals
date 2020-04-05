@@ -12,7 +12,7 @@ def example_img():
     generator = generate.Generator(
         np.array([[1.0, 1.0, 1.0]]).T,
         utils.rotate_xform(0.01, 0.01, 0),
-        4
+        8
     )
 
 
