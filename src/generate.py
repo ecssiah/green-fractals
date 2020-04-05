@@ -11,12 +11,12 @@ import image
 from frame import Frame
 
 FRAME_SIZE = 1024
-ITERATIONS = 600
-POINTS = 100_000
+ITERATIONS = 1_000
+POINTS = 1_000
 ESCAPE_RADIUS = 2
 COMPLEX_RANGE = 2.0
 RATIO = FRAME_SIZE / (2 * COMPLEX_RANGE)
-REGIONS_DIM = 20
+REGIONS_DIM = 40
 PRODUCE_IMAGES = True
 
 class Viewport():
@@ -32,6 +32,10 @@ class Border():
     '''A granular representation of a fractal border'''
     def __init__(self, params):
         self.params = params
+
+        print("calc border...")
+        print(params)
+
         self.regions = self.init_regions()
 
 
@@ -128,10 +132,12 @@ class Generator():
         assert utils.is_square(self.xform)
         assert len(self.init_params) == len(self.xform)
 
+        print("gen inputs...")
         self.params = self.generate_params()
         self.seeds = self.generate_seeds()
 
-        self.frames = []
+        print("calc frames...")
+        self.frames = self.calc_frames()
 
 
     def init_from_log(self, log):
@@ -142,7 +148,7 @@ class Generator():
         '''Calculate params using xform for all frames'''
         params = [self.init_params]
 
-        for i in range(1, self.num_frames):
+        for i in range(1, self.num_frames + 1):
             params.append(self.xform @ params[i - 1])
 
         return params
@@ -162,8 +168,8 @@ class Generator():
         return seeds
 
 
-    def calc_escapes(self, frame_num, seed_pos, frame):
-        '''Iterates a seed_pos looking for escape'''
+    def calc_paths(self, frame_num, seed_pos, frame):
+        '''Iterates a seed_pos looking for escape paths'''
         path = []
         cur_pos = seed_pos
 
@@ -197,35 +203,42 @@ class Generator():
         self.frames.append(frame)
 
 
-    def step(self, frame_num):
+    def produce_frame(self, frame_num):
         '''Steps the generating function according to the rate and xform'''
         frame = Frame(FRAME_SIZE)
 
         for i in range(POINTS):
-            self.calc_escapes(frame_num, self.seeds[frame_num][i], frame)
+            self.calc_paths(frame_num, self.seeds[frame_num][i], frame)
 
-        self.norm_density(frame)
+        frame.calc_norm()
 
-        if PRODUCE_IMAGES:
-            self.process_image(frame)
+        return frame
 
 
-    def calc_frames(self, num_frames):
+    def calc_frames(self):
         '''Apply transform to params and generate next n frames'''
         print(f"calc {str(self.gen_id)[:6]} ", end='', flush=True)
 
-        for frame_num in range(num_frames):
-            self.step(frame_num)
+        frames = []
+
+        for frame_num in range(self.num_frames):
             print(f"{frame_num + 1} ", end='', flush=True)
+
+            frame = self.produce_frame(frame_num)
+            frames.append(frame)
+
+            self.process_image(frame_num, frame)
 
         print()
 
+        return frames
 
-    def process_image(self, frame):
+
+    def process_image(self, frame_num, frame):
         '''Save the given frame to an image on the disk'''
         img = image.frame2image(frame)
 
-        name = f"{self.gen_id}_frame_{len(self.frames):04}"
+        name = f"{self.gen_id}_frame_{frame_num:04}"
         img.save(f"./media/imgs/{name}.png")
 
 

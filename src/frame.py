@@ -19,6 +19,13 @@ class Frame():
         return self.dim
 
 
+    def calc_norm(self):
+        max_count = np.amax(self.density)
+        assert max_count > 0
+
+        self.density_norm = self.density / max_count
+
+
     def mod_density(self, x_pos, y_pos, inc):
         '''Increment the density at x_pos, y_pos'''
         self.density[x_pos, y_pos] += inc
