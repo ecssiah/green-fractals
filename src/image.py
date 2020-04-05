@@ -1,5 +1,4 @@
 '''Imaging module for generators'''
-import time
 from uuid import uuid4
 from PIL import Image
 

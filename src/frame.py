@@ -1,7 +1,7 @@
 '''A square snapshot of a density map called a frame'''
 import numpy as np
 
-from settings import *
+from constants import ITERATIONS, FRAME_SIZE, ESCAPE_RADIUS, RATIO
 
 
 class Frame():
@@ -29,7 +29,7 @@ class Frame():
         self.density_norm = self.density / max_count
 
 
-    def calc_paths(self, seed_pos, params):
+    def calc_path(self, seed_pos, params):
         '''Iterates a seed_pos looking for escape paths'''
         path = []
         cur_pos = seed_pos

@@ -9,7 +9,15 @@ import numpy as np
 import utils
 import image
 from frame import Frame
-from settings import *
+from constants import (
+    COMPLEX_RANGE,
+    REGIONS_DIM,
+    ITERATIONS,
+    ESCAPE_RADIUS,
+    RANDOM_SEED,
+    POINTS,
+    FRAME_SIZE,
+)
 
 
 class Viewport():
@@ -27,7 +35,7 @@ class Border():
         self.params = params
 
         print("calc border...")
-        print(params)
+        print(f"  {params[0, 0]:.4f} {params[1, 0]:.4f} {params[2, 0]:.4f}")
 
         self.regions = self.init_regions()
 
@@ -128,17 +136,16 @@ class Generator():
         assert len(self.init_params) == len(self.xform)
 
         print("gen inputs...")
-        self.params = self.generate_params()
-        self.seeds = self.generate_seeds()
-
-        self.frames = self.calc_frames()
+        self.params = self.gen_params()
+        self.seeds = self.gen_seeds()
+        self.frames = self.gen_frames()
 
 
     def init_from_log(self, log):
         '''Generate frames from log file'''
 
 
-    def generate_params(self):
+    def gen_params(self):
         '''Calculate params using xform for all frames'''
         params = [self.init_params]
 
@@ -148,7 +155,7 @@ class Generator():
         return params
 
 
-    def generate_seeds(self):
+    def gen_seeds(self):
         '''Find suitable complex numbers to serve as seeds'''
         seeds = []
 
@@ -167,14 +174,14 @@ class Generator():
         frame = Frame(FRAME_SIZE)
 
         for i in range(POINTS):
-            frame.calc_paths(self.seeds[frame_num][i], self.params[frame_num])
+            frame.calc_path(self.seeds[frame_num][i], self.params[frame_num])
 
         frame.calc_norm()
 
         return frame
 
 
-    def calc_frames(self):
+    def gen_frames(self):
         '''Apply transform to params and generate next n frames'''
         print(f"calc frame {str(self.gen_id)[:6]} ", end='', flush=True)
 
