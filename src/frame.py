@@ -1,6 +1,8 @@
 '''A square snapshot of a density map called a frame'''
 import numpy as np
 
+from settings import *
+
 
 class Frame():
     '''A density map'''
@@ -26,6 +28,27 @@ class Frame():
         self.density_norm = self.density / max_count
 
 
-    def mod_density(self, x_pos, y_pos, inc):
-        '''Increment the density at x_pos, y_pos'''
-        self.density[x_pos, y_pos] += inc
+    def calc_paths(self, seed_pos, params):
+        '''Iterates a seed_pos looking for escape paths'''
+        path = []
+        cur_pos = seed_pos
+
+        for _ in range(ITERATIONS):
+            path.append(cur_pos)
+            pos_conj = cur_pos.conjugate()
+            cur_pos = seed_pos
+
+            for i in range(len(params)):
+                cur_pos += params[i, 0] * pos_conj**(i+2)
+
+            if abs(cur_pos) > ESCAPE_RADIUS:
+                while path:
+                    path_pos = path.pop()
+                    x_pos = int(path_pos.real * RATIO) + FRAME_SIZE // 2
+                    y_pos = int(path_pos.imag * RATIO) + FRAME_SIZE // 2
+
+                    if 0 < x_pos < FRAME_SIZE and 0 < y_pos < FRAME_SIZE:
+                        self.density[x_pos, y_pos] += 1
+                        self.density[x_pos, -y_pos] += 1
+
+                break

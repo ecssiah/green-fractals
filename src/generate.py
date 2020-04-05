@@ -9,16 +9,8 @@ import numpy as np
 import utils
 import image
 from frame import Frame
+from settings import *
 
-RANDOM_SEED = 1
-FRAME_SIZE = 1024
-ITERATIONS = 1_000
-POINTS = 1_000
-ESCAPE_RADIUS = 2
-COMPLEX_RANGE = 2.0
-RATIO = FRAME_SIZE / (2 * COMPLEX_RANGE)
-REGIONS_DIM = 40
-PRODUCE_IMAGES = True
 
 class Viewport():
     '''A rectangular region representing a view'''
@@ -139,7 +131,6 @@ class Generator():
         self.params = self.generate_params()
         self.seeds = self.generate_seeds()
 
-        print("calc frames...")
         self.frames = self.calc_frames()
 
 
@@ -171,30 +162,30 @@ class Generator():
         return seeds
 
 
-    def calc_paths(self, frame_num, seed_pos, frame):
-        '''Iterates a seed_pos looking for escape paths'''
-        path = []
-        cur_pos = seed_pos
+    # def calc_paths(self, frame_num, seed_pos, frame):
+    #     '''Iterates a seed_pos looking for escape paths'''
+    #     path = []
+    #     cur_pos = seed_pos
 
-        for _ in range(ITERATIONS):
-            path.append(cur_pos)
-            pos_conj = cur_pos.conjugate()
-            cur_pos = seed_pos
+    #     for _ in range(ITERATIONS):
+    #         path.append(cur_pos)
+    #         pos_conj = cur_pos.conjugate()
+    #         cur_pos = seed_pos
 
-            for i in range(len(self.params[frame_num])):
-                cur_pos += self.params[frame_num][i, 0] * pos_conj**(i+2)
+    #         for i in range(len(self.params[frame_num])):
+    #             cur_pos += self.params[frame_num][i, 0] * pos_conj**(i+2)
 
-            if abs(cur_pos) > ESCAPE_RADIUS:
-                while path:
-                    path_pos = path.pop()
-                    x_pos = int(path_pos.real * RATIO) + FRAME_SIZE // 2
-                    y_pos = int(path_pos.imag * RATIO) + FRAME_SIZE // 2
+    #         if abs(cur_pos) > ESCAPE_RADIUS:
+    #             while path:
+    #                 path_pos = path.pop()
+    #                 x_pos = int(path_pos.real * RATIO) + FRAME_SIZE // 2
+    #                 y_pos = int(path_pos.imag * RATIO) + FRAME_SIZE // 2
 
-                    if 0 < x_pos < FRAME_SIZE and 0 < y_pos < FRAME_SIZE:
-                        frame.mod_density(x_pos, y_pos, 1)
-                        frame.mod_density(x_pos, -y_pos, 1)
+    #                 if 0 < x_pos < FRAME_SIZE and 0 < y_pos < FRAME_SIZE:
+    #                     frame.mod_density(x_pos, y_pos, 1)
+    #                     frame.mod_density(x_pos, -y_pos, 1)
 
-                break
+    #             break
 
 
     def produce_frame(self, frame_num):
@@ -202,7 +193,7 @@ class Generator():
         frame = Frame(FRAME_SIZE)
 
         for i in range(POINTS):
-            self.calc_paths(frame_num, self.seeds[frame_num][i], frame)
+            frame.calc_paths(self.seeds[frame_num][i], self.params[frame_num])
 
         frame.calc_norm()
 
