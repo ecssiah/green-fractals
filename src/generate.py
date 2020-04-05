@@ -220,7 +220,7 @@ class Generator():
 
     def calc_frames(self):
         '''Apply transform to params and generate next n frames'''
-        print(f"calc {str(self.gen_id)[:6]} ", end='', flush=True)
+        print(f"calc frame {str(self.gen_id)[:6]} ", end='', flush=True)
 
         frames = []
 

@@ -7,7 +7,7 @@ import generate
 
 
 def frame2image(frame):
-    '''Produce a monocolor image from a frame''' 
+    '''Produce a monocolor image from a frame'''
 
     img = Image.new(
         'RGB', (generate.FRAME_SIZE, generate.FRAME_SIZE), (0, 0, 0)
@@ -54,14 +54,14 @@ def generate_color_image(red_generator, green_generator, blue_generator):
 
     image_id = uuid4()
 
-    print(f"calc {str(image_id)[:6]} ", end='', flush=True)
+    print(f"calc frame {str(image_id)[:6]} ", end='', flush=True)
 
     for frame_num in range(num_frames):
         print(f"{frame_num + 1} ", end='', flush=True)
 
         out_img = frames2image(
-            red_generator.frames[frame_num], 
-            green_generator.frames[frame_num], 
+            red_generator.frames[frame_num],
+            green_generator.frames[frame_num],
             blue_generator.frames[frame_num]
         )
 
