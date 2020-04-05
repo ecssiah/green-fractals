@@ -197,15 +197,6 @@ class Generator():
                 break
 
 
-    def norm_density(self, frame):
-        '''Normalizes the density map'''
-        max_count = np.amax(frame.density)
-        assert max_count > 0
-
-        frame.density_norm = frame.density / max_count
-        self.frames.append(frame)
-
-
     def produce_frame(self, frame_num):
         '''Steps the generating function according to the rate and xform'''
         frame = Frame(FRAME_SIZE)
