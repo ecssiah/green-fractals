@@ -21,7 +21,7 @@ class Frame():
 
     def __init__(self, dim):
         self.dim = dim
-        self.viewport = Viewport(1.0, 0.0, 3.0)
+        self.viewport = Viewport(0.0, 0.0, 2.4)
         self.density = np.zeros((dim, dim), dtype=int)
         self.density_norm = np.zeros((dim, dim))
 
