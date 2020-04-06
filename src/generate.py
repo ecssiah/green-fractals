@@ -20,30 +20,18 @@ from constants import (
 )
 
 
-class Viewport():
-    '''A rectangular region representing a view'''
-    def __init__(self, x, y, w, h):
-        self.x = x
-        self.y = y
-        self.w = w
-        self.h = h
-
-
 class Border():
     '''A granular representation of a fractal border'''
     def __init__(self, params):
         self.params = params
 
-        print("calc border...")
-        print(f"  {params[0, 0]:.4f} {params[1, 0]:.4f} {params[2, 0]:.4f}")
+        print(f"  calc border {params[0, 0]:.4f} {params[1, 0]:.4f} {params[2, 0]:.4f}")
 
         self.regions = self.init_regions()
 
 
     def produce_seed(self):
         '''Returns a seed from one of the border regions'''
-        seed = None
-
         while True:
             seed = cmath.rect(
                 random.uniform(0, COMPLEX_RANGE),
@@ -51,9 +39,7 @@ class Border():
             )
 
             if self.is_border(seed):
-                break
-
-        return seed
+                return seed
 
 
     def is_border(self, pos):
@@ -114,30 +100,25 @@ class Border():
         return regions
 
 
-    def update_params(self, params):
-        '''Calculates new regions based on params input'''
-        self.params = params
-        self.init_regions()
-
-
 class Generator():
     '''Generator class to produce frames'''
 
     def __init__(self, init_params, xform, num_frames=12):
         random.seed(RANDOM_SEED)
 
-        self.gen_id = uuid4()
+        self.gen_id = str(uuid4())[:18]
         self.xform = xform
         self.num_frames = num_frames
         self.init_params = init_params
-        self.viewport = Viewport(0, 0, 1.6, 1.6)
 
         assert utils.is_square(self.xform)
         assert len(self.init_params) == len(self.xform)
 
-        print("gen inputs...")
+        print("calc params")
         self.params = self.gen_params()
+        print("calc seeds")
         self.seeds = self.gen_seeds()
+        print(f"calc frames {self.gen_id}")
         self.frames = self.gen_frames()
 
 
@@ -176,24 +157,22 @@ class Generator():
         for i in range(POINTS):
             frame.calc_path(self.seeds[frame_num][i], self.params[frame_num])
 
-        frame.calc_norm()
+        frame.normalize()
 
         return frame
 
 
     def gen_frames(self):
         '''Apply transform to params and generate next n frames'''
-        print(f"calc frame {str(self.gen_id)[:6]} ", end='', flush=True)
-
         frames = []
 
         for frame_num in range(self.num_frames):
-            print(f"{frame_num + 1} ", end='', flush=True)
-
             frame = self.produce_frame(frame_num)
             frames.append(frame)
 
             self.process_image(frame_num, frame)
+
+            print(f"{frame_num + 1} ", end='', flush=True)
 
         print()
 
@@ -213,7 +192,4 @@ class Generator():
         time_str = time.strftime("%Y%m%d%H%M%S")
         name = f"{self.gen_id}_{time_str}"
 
-        # Not saving numpy arrays, saving Frames
         np.savez(f"./media/frames/{name}", *self.frames)
-
-        # np.savez(f"./media/frames/{name}_density", )

@@ -15,7 +15,7 @@ def frame2image(frame):
     for x in range(generate.FRAME_SIZE):
         for y in range(generate.FRAME_SIZE):
             intensity = int(255 * frame.density_norm[x, y])
-            img.putpixel((y, x), (intensity, intensity, intensity))
+            img.putpixel((x, y), (intensity, intensity, intensity))
 
     return img
 
@@ -35,7 +35,10 @@ def frames2image(red_frame, green_frame, blue_frame):
             green_intensity = int(255 * green_frame.density_norm[x, y])
             blue_intensity = int(255 * blue_frame.density_norm[x, y])
 
-            img.putpixel((y, x), (red_intensity, green_intensity, blue_intensity))
+            img.putpixel(
+                (y, x),
+                (red_intensity, green_intensity, blue_intensity)
+            )
 
     return img
 
@@ -50,8 +53,7 @@ def generate_color_image(red_generator, green_generator, blue_generator):
     )
 
     num_frames = len(red_generator.frames)
-
-    image_id = uuid4()
+    image_id = str(uuid4())[:18]
 
     print(f"calc frame {str(image_id)[:6]} ", end='', flush=True)
 

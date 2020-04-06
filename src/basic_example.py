@@ -9,11 +9,10 @@ import generate
 
 def example_img():
     '''Produces a image of a Green fractal'''
-    generate.Generator(
-        np.array([[1.0, 1.0, 1.0]]).T,
-        utils.rotate_xform(0.01, 0.01, 0),
-        8
-    )
+    params = np.array([[1.0, 1.0, 1.0]])
+    params /= math.sqrt(3.0)
+
+    generate.Generator(params.T, utils.rotate_xform(0.01, 0, 0), 2)
 
 
 def example_color_img():
