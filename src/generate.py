@@ -11,7 +11,7 @@ import image
 from frame import Frame
 from constants import (
     COMPLEX_RANGE,
-    REGIONS_DIM,
+    BORDER_DIVS,
     ITERATIONS,
     ESCAPE_RADIUS,
     RANDOM_SEED,
@@ -33,10 +33,10 @@ class Border():
     def produce_seed(self):
         '''Returns a seed from one of the border regions'''
         while True:
-            seed = cmath.rect(
-                random.uniform(0, COMPLEX_RANGE),
-                random.uniform(0, 2 * math.pi)
-            )
+            radius = random.uniform(0, COMPLEX_RANGE)
+            angle = random.uniform(0, 2 * math.pi)
+
+            seed = cmath.rect(radius, angle)
 
             if self.is_border(seed):
                 return seed
@@ -45,12 +45,12 @@ class Border():
     def is_border(self, pos):
         '''Rejects ineffective seed points'''
         half_width = COMPLEX_RANGE / 2
-        conversion_factor = REGIONS_DIM / COMPLEX_RANGE
+        conversion_factor = BORDER_DIVS / COMPLEX_RANGE
 
         x_pos = math.floor(conversion_factor * (pos.real + half_width))
         y_pos = math.floor(conversion_factor * (pos.imag + half_width))
 
-        if 0 <= x_pos < REGIONS_DIM and 0 <= y_pos < REGIONS_DIM:
+        if 0 <= x_pos < BORDER_DIVS and 0 <= y_pos < BORDER_DIVS:
             return self.regions[x_pos, y_pos] == 1
 
         return False
@@ -58,13 +58,13 @@ class Border():
 
     def init_regions(self):
         '''Find regions likely to be on Mandelbrot border'''
-        regions = np.zeros((REGIONS_DIM, REGIONS_DIM), dtype=int)
+        regions = np.zeros((BORDER_DIVS, BORDER_DIVS), dtype=int)
 
-        spacing = COMPLEX_RANGE / REGIONS_DIM
-        escape_map = np.zeros((REGIONS_DIM + 1, REGIONS_DIM + 1), dtype=int)
+        spacing = COMPLEX_RANGE / BORDER_DIVS
+        escape_map = np.zeros((BORDER_DIVS + 1, BORDER_DIVS + 1), dtype=int)
 
-        for x_pos in range(REGIONS_DIM + 1):
-            for y_pos in range(REGIONS_DIM + 1):
+        for x_pos in range(BORDER_DIVS + 1):
+            for y_pos in range(BORDER_DIVS + 1):
                 cur_pos = seed_pos = complex(
                     spacing * x_pos - COMPLEX_RANGE / 2,
                     spacing * y_pos - COMPLEX_RANGE / 2,
@@ -78,14 +78,14 @@ class Border():
                         cur_pos += self.params[i, 0] * pos_conj**(i+2)
 
                     if abs(cur_pos) > ESCAPE_RADIUS:
-                        if 0 <= x_pos < REGIONS_DIM and 0 <= y_pos < REGIONS_DIM:
+                        if 0 <= x_pos < BORDER_DIVS and 0 <= y_pos < BORDER_DIVS:
                             escape_map[x_pos, y_pos] = 1
                         break
 
         num_border_regions = 0
 
-        for x_pos in range(REGIONS_DIM):
-            for y_pos in range(REGIONS_DIM):
+        for x_pos in range(BORDER_DIVS):
+            for y_pos in range(BORDER_DIVS):
                 region_sum = (
                     escape_map[x_pos, y_pos] +
                     escape_map[x_pos + 1, y_pos] +
@@ -154,8 +154,7 @@ class Generator():
         '''Steps the generating function according to the rate and xform'''
         frame = Frame(FRAME_SIZE)
 
-        for i in range(POINTS):
-            frame.calc_path(self.seeds[frame_num][i], self.params[frame_num])
+        frame.step(self.seeds[frame_num], self.params[frame_num])
 
         frame.normalize()
 
@@ -187,9 +186,9 @@ class Generator():
         img.save(f"./media/imgs/{name}.png")
 
 
-    def save_frames(self):
+    def save(self):
         '''Save arrays for current frameset'''
         time_str = time.strftime("%Y%m%d%H%M%S")
         name = f"{self.gen_id}_{time_str}"
 
-        np.savez(f"./media/frames/{name}", *self.frames)
+        np.savez(f"./data/saves/{name}_frames", *self.frames)

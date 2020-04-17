@@ -2,6 +2,7 @@
 import numpy as np
 
 from constants import (
+    POINTS,
     ITERATIONS,
     FRAME_SIZE,
     ESCAPE_RADIUS,
@@ -21,7 +22,7 @@ class Frame():
 
     def __init__(self, dim):
         self.dim = dim
-        self.viewport = Viewport(0.0, 0.0, 2.4)
+        self.viewport = Viewport(0.0, -0.7, 1.4)
         self.density = np.zeros((dim, dim), dtype=int)
         self.density_norm = np.zeros((dim, dim))
 
@@ -50,6 +51,12 @@ class Frame():
             int(conversion_factor * (c.imag - self.viewport.x + self.viewport.d / 2)),
             int(conversion_factor * (c.real - self.viewport.y + self.viewport.d / 2))
         )
+
+
+    def step(self, seeds, params):
+        '''Step the generating function for each point'''
+        for i in range(POINTS):
+            self.calc_path(seeds[i], params)
 
 
     def calc_path(self, seed_pos, params):
